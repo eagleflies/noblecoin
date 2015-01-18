@@ -64,8 +64,6 @@ double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
 
         pindex = pindex->pprev;
     }
-    if (fDebugMagi)
-	printf("@GetPoSKernelPS -> stake blocks for average = %d\n", nStakesHandled);
 
     return nStakesTime ? dStakeKernelsTriedAvg / nStakesTime : 0;
 }
@@ -105,8 +103,6 @@ double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup)
 //	}
     }
     if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
-    if (fDebugMagi)
-	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diffTot / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
 
     return diffTot*4294967296.0/double(nActualBlockTimeTot);
 }
@@ -147,8 +143,6 @@ double GetPoSKernelPSV3(const CBlockIndex* blockindex)
 	}
     }
     if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
-    if (fDebugMagi)
-	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diff / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
 
     return dStakeKernelsTriedAvg / double(nStakesHandled);
 }
@@ -330,37 +324,6 @@ Value getblockbynumber(const Array& params, bool fHelp)
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
 }
 
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0);
-Value getnewblockvaluebynumber(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "getnewblockvaluebynumber <number>\n"
-            "Returns a block reward with given block-number.");
-
-    int nHeight = params[0].get_int();
-    if (nHeight < 1 || nHeight > nBestHeight)
-        throw runtime_error("Block number out of range.");
-
-    CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
-    while (pblockindex->nHeight > nHeight)
-        pblockindex = pblockindex->pprev;
-    Object obj;
-    obj.push_back(Pair("flags", strprintf("%s", pblockindex->IsProofOfStake()? "proof-of-stake" : "proof-of-work")));
-    if (pblockindex->IsProofOfStake()) {
-	obj.push_back(Pair("difficulty", GetDifficulty(pblockindex)));
-	obj.push_back(Pair("difficulty-V2", 0));
-	obj.push_back(Pair("blockvalue", 0));
-    }
-    else {
-	obj.push_back(Pair("difficulty", GetDifficulty(pblockindex)));
-	obj.push_back(Pair("difficulty-V2", GetDifficultyFromBitsV2(pblockindex)));
-	obj.push_back(Pair("blockvalue", ((double)GetProofOfWorkRewardV2(pblockindex, 0, false))/((double)COIN)));
-    }
-    return obj;
-}
 
 // ppcoin: get information of sync-checkpoint
 Value getcheckpoint(const Array& params, bool fHelp)

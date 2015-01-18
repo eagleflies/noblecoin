@@ -276,8 +276,8 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 20,  // Magi: address begin with '9'
-        SCRIPT_ADDRESS = 5, 
+        PUBKEY_ADDRESS = 21, // NobleCoin addresses start with N
+        SCRIPT_ADDRESS = 5,
         PUBKEY_ADDRESS_TEST = 111,
         SCRIPT_ADDRESS_TEST = 196,
     };

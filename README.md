@@ -1,7 +1,7 @@
 
-Magi development tree
+Noblecoin development tree
 
-Magi is a hybrid PoW/PoS-based cryptocurrency. Magi is also a CPU coin. 
+Noblecoin is a hybrid PoW/PoS-based cryptocurrency. Noblecoin is also a CPU coin. 
 
 Development process
 ===========================
@@ -16,7 +16,7 @@ or are controversial.
 
 The master branch is regularly built and tested, but is not guaranteed
 to be completely stable. Tags are regularly created to indicate new
-stable release versions of Magi.
+stable release versions of Noblecoin.
 
 Feature branches are created when there are major new features being
 worked on by several people.
@@ -30,11 +30,5 @@ in this manner will have their corresponding issue labeled 'stagnant'.
 Issues with no commits will be given a similar warning, and closed after
 15 days from their last activity. Issues closed in this manner will be 
 labeled 'stale'.
-
-Magi names: Coin Magi, Coin of the Magi.
-Symbol: XMG
-
-Bitcointalk thread: https://bitcointalk.org/index.php?topic=735170.0
-Website: http://www.cryptomagic.com/
 
 Coins Source Verification

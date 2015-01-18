@@ -44,7 +44,7 @@ Value setgenerate(const Array& params, bool fHelp)
     mapArgs["-gen"] = (fGenerate ? "1" : "0");
 
     assert(pwalletMain != NULL);
-    GenerateMagi(fGenerate, pwalletMain);
+    GenerateNoblecoin(fGenerate, pwalletMain);
     return Value::null;
 }
 
@@ -61,10 +61,7 @@ Value gethashespersec(const Array& params, bool fHelp)
     return (boost::int64_t)dHashesPerSec;
 }
 
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0);
 double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR);
 Value getmininginfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -75,12 +72,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
     int64_t nNetWorkWeit = GetPoSKernelPS();
     uint64 nEstimateTime = 90 * GetPoSKernelPS() / nWeight;
-    double bvalue = (IsPoWIIRewardProtocolV2(pindexBest->nTime)) ? 
-		  ((double)GetProofOfWorkRewardV2(pindexBest, 0, true))/((double)COIN) : 
-		  (double)((uint64_t)(GetProofOfWorkReward(pindexBest->nBits, pindexBest->nHeight, 0)/COIN));
-    double rAPR = (IsPoSIIProtocolV2(pindexBest->nHeight+1)) ? 
-		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE) : 
-		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+    double rAPR = GetAnnualInterest(nNetWorkWeit, MAX_APR_PROOF_OF_STAKE);
 
     Object obj, diff, blockvalue, weight;
     obj.push_back(Pair("blocks",           (int)nBestHeight));
@@ -91,11 +83,6 @@ Value getmininginfo(const Array& params, bool fHelp)
     diff.push_back(Pair("proof-of-stake",  GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     diff.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
     obj.push_back(Pair("difficulty",       diff));
-
-//    obj.push_back(Pair("blockvalue",       (uint64_t)(GetProofOfWorkReward(pindexBest->nBits, pindexBest->nHeight, 0)/COIN)));
-    blockvalue.push_back(Pair("difficulty-V2",  GetDifficultyFromBitsV2(pindexBest)));
-    blockvalue.push_back(Pair("blockvalue",  bvalue));
-    obj.push_back(Pair("blockvalue",       blockvalue));
 
     obj.push_back(Pair("netmhashps",       GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight",   GetPoSKernelPS()));
@@ -180,8 +167,6 @@ double GetPoWHashPS(int lookup, int height)
 	}
     }
     if (nActualBlockTimeTot == 0 || nBlockWeight == 0) return 0;
-    if (fDebugMagi)
-	printf("@GetPoWHashPS -> diff = %f, block time = %f\n", GetDifficulty(GetLastPoWBlockIndex(pindex0)), (double)nActualBlockTimeTot / (double)nBlockWeight);
     
     return GetDifficulty(GetLastPoWBlockIndex(pindex0)) * pow(2.0, 32) / ((double)nActualBlockTimeTot / (double)nBlockWeight);
 }
@@ -299,38 +284,6 @@ Value getnetstakeweight(const Array& params, bool fHelp)
 }
 
 
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0);
-double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0);
-Value getminingbykhps(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 2)
-        throw runtime_error(
-            "getminingbykhps [hashrate in kh/s] [blocks]\n"
-            "Returns the estimated mining earnings in XMG.\n"
-            "Pass in [hashrate] in kh/s, default: 1kh/s.\n"
-            "Pass in [blocks] to average difficulty, default: 50.");
-
-    double khps = params.size() > 0 ? params[0].get_real() : 1.;
-    int blocks = params.size() > 1 ? params[1].get_int() : 50;
-
-    const CBlockIndex* pblockindex = GetLastBlockIndex(pindexBest, false); // PoW
-    double blockvalue = ((double)GetProofOfWorkRewardV2(pblockindex, 0, true))/((double)COIN); 
-    double difficultyaver = GetDifficultyFromBitsAver(pblockindex, blocks); 
-    double timetofindablock = difficultyaver * pow(2.0, 32) / (khps * 1000.); // in s
-
-    Object obj, mining;
-    obj.push_back(Pair("hashrate (kh/s)", khps));
-    obj.push_back(Pair("difficulty", GetDifficulty(pblockindex)));
-    obj.push_back(Pair("difficulty(aver)", difficultyaver));
-    obj.push_back(Pair("blockvalue", blockvalue));
-    mining.push_back(Pair("1 hour", 60.*60./timetofindablock*blockvalue));
-    mining.push_back(Pair("1 day", 24.*60.*60./timetofindablock*blockvalue));
-    mining.push_back(Pair("1 week", 7.*24.*60.*60./timetofindablock*blockvalue));
-    obj.push_back(Pair("mining (XMG)", mining));
-
-    return obj;
-}
-
 Value getworkex(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 2)
@@ -340,10 +293,10 @@ Value getworkex(const Array& params, bool fHelp)
         );
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "Magi is not connected!");
+        throw JSONRPCError(-9, "Noblecoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "Magi is downloading blocks...");
+        throw JSONRPCError(-10, "Noblecoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;
@@ -474,10 +427,10 @@ Value getwork(const Array& params, bool fHelp)
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Magi is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Noblecoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Magi is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Noblecoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -540,33 +493,6 @@ Value getwork(const Array& params, bool fHelp)
 
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
-if (fDebug && fDebugMagi)
-{
-    std::string cdata = HexStr(BEGIN(pdata), END(pdata));
-    std::string chashTarget = HexStr(BEGIN(hashTarget), END(hashTarget));
-    printf(">>$ work sent: \n");
-    printf("nVersion:       %i\n", pblock->nVersion);
-    printf("hashPrevBlock:  0x%s\n", pblock->hashPrevBlock.GetHex().c_str());
-    printf("hashMerkleRoot: 0x%s\n", pblock->hashMerkleRoot.GetHex().c_str());
-    printf("nTime:          %i\n", pblock->nTime);
-    printf("nBits:          %i\n", pblock->nBits);
-    printf("nNonce:         %i\n", pblock->nNonce);
-//    printf("nPrevMoneySupply: %"PRI64d"\n", pblock->nPrevMoneySupply);
-    printf("-----------------\n");
-    printf("hashTarget:     0x%s\n", hashTarget.GetHex().c_str());
-    printf(">>$ work sent (bytes swapped): \n");
-    printf("all:            0x%s\n", cdata.c_str());
-    printf("nVersion:       0x%s\n", cdata.substr(0, 8).c_str());
-    printf("hashPrevBlock:  0x%s\n", cdata.substr(8, 64).c_str());
-    printf("hashMerkleRoot: 0x%s\n", cdata.substr(72, 64).c_str());
-    printf("nTime:          0x%s\n", cdata.substr(136, 8).c_str());
-    printf("nBits:          0x%s\n", cdata.substr(144, 8).c_str());
-    printf("nNonce:         0x%s\n", cdata.substr(152, 8).c_str());
-//    printf("nPrevMoneySupply: 0x%s\n", cdata.substr(160, 16).c_str());
-    printf("-----------------\n");
-    printf("hashTarget:     0x%s\n\n", chashTarget.c_str());
-}
-
         Object result; // HexStr: inverst bytes
         result.push_back(Pair("midstate", HexStr(BEGIN(pmidstate), END(pmidstate)))); // deprecated
         result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
@@ -587,20 +513,6 @@ if (fDebug && fDebugMagi)
         // Byte reverse
         for (int i = 0; i < 128/4; i++)
             ((unsigned int*)pdata)[i] = ByteReverse(((unsigned int*)pdata)[i]);
-if (fDebug && fDebugMagi)
-{
-    printf("<<$ work received: \n");
-    uint256 hashTarget_rc = CBigNum().SetCompact(pdata->nBits).getuint256();
-    printf("nVersion:       %i\n", pdata->nVersion);
-    printf("hashPrevBlock:  0x%s\n", pdata->hashPrevBlock.GetHex().c_str());
-    printf("hashMerkleRoot: 0x%s\n", pdata->hashMerkleRoot.GetHex().c_str());
-    printf("nTime:          %i\n", pdata->nTime);
-    printf("nBits:          %i\n", pdata->nBits);
-    printf("nNonce:         %i\n", pdata->nNonce);
-    printf("-----------------\n");
-    printf("hashTarget:     0x%s\n", hashTarget_rc.GetHex().c_str());
-    printf("hash:           0x%s\n\n", pdata->GetHash().GetHex().c_str());
-}
 
         // Get saved block
         if (!mapNewBlock.count(pdata->hashMerkleRoot))

@@ -65,8 +65,6 @@ using namespace std;
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
 bool fDebug = false;
-bool fDebugMagi = false;
-bool fDebugMagiPoS = false;
 bool fDebugNet = false;
 bool fPrintToConsole = false;
 bool fPrintToDebugger = false;
@@ -81,7 +79,6 @@ bool fNoListen = false;
 bool fLogTimestamps = false;
 CMedianFilter<int64> vTimeOffsets(200,0);
 bool fReopenDebugLog = false;
-bool fTestNetWeightV2 = false;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
@@ -1014,7 +1011,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "Magi";
+    const char* pszModule = "Noblecoin";
 #endif
     if (pex)
         return strprintf(
@@ -1063,13 +1060,13 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Magi
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Magi
-    // Mac: ~/Library/Application Support/Magi
-    // Unix: ~/.magi
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Noblecoin
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Noblecoin
+    // Mac: ~/Library/Application Support/Noblecoin
+    // Unix: ~/.noblecoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Magi";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Noblecoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -1081,10 +1078,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     fs::create_directory(pathRet);
-    return pathRet / "Magi";
+    return pathRet / "Noblecoin";
 #else
     // Unix
-    return pathRet / ".magi";
+    return pathRet / ".noblecoin";
 #endif
 #endif
 }
@@ -1126,7 +1123,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "magi.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "noblecoin.conf"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
@@ -1157,7 +1154,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "magid.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "noblecoind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
@@ -1302,10 +1299,10 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Magi will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Noblecoin will not work properly.");
                     strMiscWarning = strMessage;
                     printf("*** %s\n", strMessage.c_str());
-                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Magi"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
+                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Noblecoin"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
                 }
             }
         }

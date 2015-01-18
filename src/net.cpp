@@ -1066,7 +1066,7 @@ void ThreadMapPort2(void* parg)
             }
         }
 
-        string strDesc = "Magi " + FormatFullVersion();
+        string strDesc = "Noblecoin " + FormatFullVersion();
 #ifndef UPNPDISCOVER_SUCCESS
         /* miniupnpc 1.5 */
         r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype,
@@ -1154,12 +1154,10 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strMainNetDNSSeed[][2] = {
-    {"coinmagi.org", "seed.coinmagi.org"},
     {NULL, NULL}
 };
 
 static const char *strTestNetDNSSeed[][2] = {
-    {"coinmagi.org", "seed.coinmagi.org"},
     {NULL, NULL}
 };
 
@@ -1234,7 +1232,7 @@ void ThreadDNSAddressSeed2(void* parg)
 
 
  unsigned int pnSeed[] = {
-	0xD7E18068, 0xD590BDD8, 0xA5D9F5A2, 0x41398368, 0x642A8368
+	0x642A8368
   };
 
 
@@ -1326,7 +1324,7 @@ void static ThreadStakeMiner(void* parg)
     try
     {
         vnThreadsRunning[THREAD_STAKEMINER]++;
-        MagiMiner(pwallet, true);
+        NoblecoinMiner(pwallet, true);
         vnThreadsRunning[THREAD_STAKEMINER]--;
     }
     catch (std::exception& e) {
@@ -1763,7 +1761,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf(_("Unable to bind to %s on this computer. Magi is probably already running."), addrBind.ToString().c_str());
+            strError = strprintf(_("Unable to bind to %s on this computer. Noblecoin is probably already running."), addrBind.ToString().c_str());
         else
             strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString().c_str(), nErr, strerror(nErr));
         printf("%s\n", strError.c_str());
@@ -1919,7 +1917,7 @@ void StartNode(void* parg)
     }
 
     // Generate coins in the background
-    GenerateMagi(GetBoolArg("-gen", false), pwalletMain);
+    GenerateNoblecoin(GetBoolArg("-gen", false), pwalletMain);
 }
 
 bool StopNode()
@@ -1945,7 +1943,7 @@ bool StopNode()
     if (vnThreadsRunning[THREAD_SOCKETHANDLER] > 0) printf("ThreadSocketHandler still running\n");
     if (vnThreadsRunning[THREAD_OPENCONNECTIONS] > 0) printf("ThreadOpenConnections still running\n");
     if (vnThreadsRunning[THREAD_MESSAGEHANDLER] > 0) printf("ThreadMessageHandler still running\n");
-    if (vnThreadsRunning[THREAD_MINER] > 0) printf("ThreadMagiMiner still running\n");
+    if (vnThreadsRunning[THREAD_MINER] > 0) printf("ThreadNoblecoinMiner still running\n");
     if (vnThreadsRunning[THREAD_RPCLISTENER] > 0) printf("ThreadRPCListener still running\n");
     if (vnThreadsRunning[THREAD_RPCHANDLER] > 0) printf("ThreadsRPCServer still running\n");
 #ifdef USE_UPNP

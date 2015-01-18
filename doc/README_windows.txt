@@ -1,10 +1,10 @@
 
-Copyright (c) 2013-2014 Magi Developers
+Copyright (c) 2013-2014 Noblecoin Developers
 
 
-Magi 0.3.0 BETA
+Noblecoin 0.3.0 BETA
 
-Copyright (c) 2013-2014 Magi Developers
+Copyright (c) 2013-2014 Noblecoin Developers
 Copyright (c) 2013 NovaCoin Developers
 Copyright (c) 2011-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
@@ -16,7 +16,7 @@ cryptographic software written by Eric Young (eay@cryptsoft.com).
 
 Intro
 -----
-Magi is a free open source project derived from NovaCoin, with
+Noblecoin is a free open source project derived from NovaCoin, with
 the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
 Built on the foundation of Bitcoin and NovaCoin, innovations such as proof-of-stake
 help further advance the field of crypto-currency.
@@ -25,9 +25,9 @@ Setup
 -----
 After completing windows setup then run windows command line (cmd)
   cd daemon
-  magid
-You would need to create a configuration file magi.conf in the default
-wallet directory. Grant access to magid.exe in anti-virus and firewall
+  noblecoind
+You would need to create a configuration file noblecoin.conf in the default
+wallet directory. Grant access to noblecoind.exe in anti-virus and firewall
 applications if necessary.
 
 The software automatically finds other nodes to connect to.  You can
@@ -35,20 +35,18 @@ enable Universal Plug and Play (UPnP) with your router/firewall
 or forward port 
 
 23489 (TCP) to your computer so you can receive
-incoming connections.  Magi works without incoming connections,
-but allowing incoming connections helps the Magi network.
+incoming connections.  Noblecoin works without incoming connections,
+but allowing incoming connections helps the Noblecoin network.
 
 Upgrade
 -------
 All you existing coins/transactions should be intact with the upgrade.
 To upgrade first backup wallet
-magid backupwallet <destination_backup_file>
-Then shutdown magid by
-magid stop
-Start up the new magid.
+noblecoind backupwallet <destination_backup_file>
+Then shutdown noblecoind by
+noblecoind stop
+Start up the new noblecoind.
 
 
-See the documentation/wiki at the Magi site:
-  http://magi.cc/
 for help and more information.
 

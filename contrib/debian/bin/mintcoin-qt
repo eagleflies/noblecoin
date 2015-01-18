@@ -4,13 +4,13 @@ set -e
 
 umask 077
 
-basedir=~/.magi
+basedir=~/.noblecoin
 dbfile="$basedir/DB_CONFIG"
-cfgfile="$basedir/magi.conf"
+cfgfile="$basedir/noblecoin.conf"
 
 [ -e "$basedir" ] || mkdir "$basedir"
 
-# magi does not clean up DB log files by default
+# noblecoin does not clean up DB log files by default
 [ -e "$dbfile" ] || echo 'set_flags DB_LOG_AUTOREMOVE' > "$dbfile"
 
-exec /usr/lib/magi/magi-qt "$@"
+exec /usr/lib/noblecoin/noblecoin-qt "$@"

@@ -1,2 +1,2 @@
-debian/bin/magid usr/bin
-src/magid usr/lib/magi
+debian/bin/noblecoind usr/bin
+src/noblecoind usr/lib/noblecoin

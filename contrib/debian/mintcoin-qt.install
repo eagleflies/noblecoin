@@ -1,5 +1,5 @@
-magi-qt usr/bin
+noblecoin-qt usr/bin
 share/pixmaps/bitcoin32.xpm usr/share/pixmaps
 share/pixmaps/bitcoin80.xpm usr/share/pixmaps
-debian/magi-qt.desktop usr/share/applications
-debian/magi-qt.protocol usr/share/kde4/services/
+debian/noblecoin-qt.desktop usr/share/applications
+debian/noblecoin-qt.protocol usr/share/kde4/services/

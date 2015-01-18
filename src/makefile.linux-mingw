@@ -93,7 +93,7 @@ OBJS= \
     obj/tiger.o \
     obj/whirlpool.o
 
-all: magid.exe
+all: noblecoind.exe
 
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
@@ -109,7 +109,7 @@ obj/%.o: %.c $(HEADERS)
 obj/%.o: hash/%.c $(HEADERS)
 	i586-mingw32msvc-g++ -c $(CFLAGS) -fpermissive -o $@ $<
 
-magid.exe: $(OBJS:obj/%=obj/%)
+noblecoind.exe: $(OBJS:obj/%=obj/%)
 	i586-mingw32msvc-g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -120,7 +120,7 @@ obj-test/%.o: test/%.cpp $(HEADERS)
 obj/%.o: %.c $(HEADERS)
 	$(CXX) -c $(CFLAGS) -fpermissive -o $@ $<
 
-test_magi.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_noblecoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	i586-mingw32msvc-g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework-mt-s $(LIBS)
 
 obj/scrypt-x86.o: scrypt-x86.S
@@ -131,9 +131,9 @@ obj/scrypt-x86_64.o: scrypt-x86_64.S
 
 clean:
 	-rm -f obj/*.o
-	-rm -f magid.exe
+	-rm -f noblecoind.exe
 	-rm -f obj-test/*.o
-	-rm -f test_magi.exe
+	-rm -f test_noblecoin.exe
 	-rm -f obj/build.h
 
 FORCE:

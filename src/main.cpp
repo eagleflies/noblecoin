@@ -43,12 +43,12 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 unsigned int nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 2 hr
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
-unsigned int nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
+unsigned int nStakeTargetSpacing = 60;		// 60 sec PoS block spacing
 
 static const int64 nTargetTimespan = 60 * 30;	// 30 min
-static const int64 nTargetSpacingWork = 2 * nStakeTargetSpacing; // 3 min PoW block spacing
+static const int64 nTargetSpacingWork = 5 * nStakeTargetSpacing; // 5 min PoW block spacing
 
-int64 nChainStartTime = 1407209706;
+int64 nChainStartTime = 1421539200;
 int nCoinbaseMaturity = 100;			// 100 blocks
 CBlockIndex* pindexGenesisBlock = NULL;
 //int64 nLastPrevMoneySupply;
@@ -72,7 +72,7 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Magi Signed Message:\n";
+const string strMessageMagic = "Noblecoin Signed Message:\n";
 
 double dHashesPerSec;
 int64 nHPSTimerStart;
@@ -930,317 +930,39 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
     return pblockOrphan->hashPrevBlock;
 }
 
-double GetDifficultyFromBits(unsigned int nBits){
-    int nShift = (nBits >> 24) & 0xff;
-
-    double dDiff =
-        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    while (nShift < 29)
-    {
-        dDiff *= 256.0;
-        nShift++;
-    }
-    while (nShift > 29)
-    {
-        dDiff /= 256.0;
-        nShift--;
-    }
-    return dDiff;
-}
-
-#define BRW_BLKTIME_COEFF 0.1 // block time effect on average weight; the larger value, the less effect
-#define BRW_AVER_COEFF 0.25 // the larger value, the regular moving average
-
-#define BRW_EXPON_COEFF 0.15
-#define BRW_WEIGHT_MIN 0.0001
-#define BRW_WEIGHT_MAX 0.8
-#define BRW_WEIGHT_SCALE 10000.0
-
-#define DAMPINGCU 0.55
-#define DAMPINGRATE 0.075
-#define DAMPINMIN 0.3
-#define DAMPINGAMP 2.0
-
-#define BBLOCK 100
-#define BBLOCK_AVER 2000
-// diff data filter to stabilize the rewards
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0)
-{
-    int64 nWeightTot, nActualBlockSpacing;
-    double rDiffAverEMA, rDiffAver, rfw, rWeight;
-    const CBlockIndex* pindexPrev = pindex0;
-
-    // finding the average diff over up to 2000 backward blocks
-    rDiffAver = GetDifficultyFromBits(pindexPrev->nBits);
-    nWeightTot = 1;
-    for(int i = 1; i <= BBLOCK_AVER-1; i++)
-    {
-	pindexPrev = GetLastPoWBlockIndex(pindexPrev->pprev);
-	if (!pindexPrev || pindexPrev->nHeight==0) {
-	    printf("WARNING: averaged over less than BBLOCK_AVER blocks --> GetDifficultyFromBitsV2\n");
-	    break;
-	}
-      	rDiffAver += GetDifficultyFromBits(pindexPrev->nBits);
-	nWeightTot++;
-    }
-    rDiffAver /= double(nWeightTot);
-
-    pindexPrev = pindex0;
-    const CBlockIndex* pindexPrevPrev = GetLastPoWBlockIndex(pindexPrev->pprev);
-    if (!pindexPrevPrev || pindexPrevPrev->nHeight==0) {
-	printf("ERROR: no actual average done --> GetDifficultyFromBitsV2\n");
-	return rDiffAver;
-    }
-    nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-    // moving average factor depending on block time; less rfw, smoother the diff
-    rfw = (1. - exp_n(-double(nActualBlockSpacing)*BRW_EXPON_COEFF*BRW_BLKTIME_COEFF/double(nTargetSpacingWork)) ) * BRW_AVER_COEFF;
-    if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
-    else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
-
-    rDiffAverEMA = GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * BRW_WEIGHT_SCALE));
-    nWeightTot = ((int64)(rfw*BRW_WEIGHT_SCALE));
-    rWeight = 1.-rfw;
-    for(int i = 1; i <= BBLOCK-1; i++)
-    {
-	pindexPrev = pindexPrevPrev;
-	pindexPrevPrev = GetLastPoWBlockIndex(pindexPrev->pprev);
-	if (!pindexPrevPrev || pindexPrevPrev->nHeight==0) {
-	    printf("WARNING: averaged over less than BBLOCK --> GetDifficultyFromBitsV2\n");
-	    break;
-	}
-	nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-	rfw = (1. - exp_n(-double(nActualBlockSpacing)*BRW_EXPON_COEFF*BRW_BLKTIME_COEFF/double(nTargetSpacingWork)) ) * BRW_AVER_COEFF;
-	if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
-	else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
-	rDiffAverEMA += GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
-	nWeightTot += ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
-	rWeight *= (1.-rfw);
-    }
-    rDiffAverEMA /= double(nWeightTot);
-    // apply damping
-    double deviation = rDiffAverEMA - rDiffAver;
-    double damping;
-    if (deviation > 0.) {
-	damping = DAMPINGAMP * exp_n2(DAMPINGCU/DAMPINGRATE, deviation/DAMPINGRATE) + DAMPINMIN;
-    }
-    else {
-	damping = DAMPINGAMP * exp_n2(1.5*DAMPINGCU/DAMPINGRATE, abs(deviation)/DAMPINGRATE) + DAMPINMIN;
-    }
-    rDiffAverEMA = deviation * damping  +  rDiffAver;
-    return rDiffAverEMA;
-}
-
-
-double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0)
-{
-    const CBlockIndex* pindexPrev = pindex0;
-    int nBlocksAver = (nBlocksAver0 > 0) ? nBlocksAver0 : 50;
-
-    // finding the average diff over backward blocks
-    double rDiffAver = GetDifficultyFromBits(pindexPrev->nBits);
-    int nWeightTot = 1;
-    for(int i = 1; i <= nBlocksAver-1; i++)
-    {
-	pindexPrev = GetLastPoWBlockIndex(pindexPrev->pprev);
-	if (!pindexPrev || pindexPrev->nHeight==0) break;
-      	rDiffAver += GetDifficultyFromBits(pindexPrev->nBits);
-	nWeightTot++;
-    }
-    return rDiffAver/double(nWeightTot);
-}
-
-
-int64 GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
-{
-    int nHeight = pindex0->nHeight;
-    double M7Mv2_move = ( (nHeight <= 75000) ? 2.85 : ( 2.85 - pow( log(nHeight) - log(75000.), 0.3 )*1.5 ) );
-    double rDiff = GetDifficultyFromBitsV2(pindex0);
-    double rDiffcu = 2.2 / M7Mv2_move;
-    double rSubsidy = 0.;
-    rSubsidy = 50. * pow( (5.55243*(exp_n(-0.3*rDiff/0.39*M7Mv2_move) - exp_n(-0.6*rDiff/0.39*M7Mv2_move)))*rDiff, 0.5)
-		    / (3.02849*exp_n(-M7Mv2_move / 0.14814) + 1.794*exp_n(-M7Mv2_move / 0.89044) + 0.74536)
-		    * exp_n2(rDiff/(0.16/M7Mv2_move), rDiffcu/(0.16/M7Mv2_move));
-    if (rDiff > rDiffcu && rSubsidy < 3.) {
-	rSubsidy = 6. * exp_n2( pow( abs( rDiff - (18.02428*exp_n(-M7Mv2_move/0.17628) + 6.58466*exp_n(-M7Mv2_move/0.71943) + 0.93489) )/(1./M7Mv2_move), 0.5 ), 0.);
-    }
-    rSubsidy *= double(COIN);
-    if (rSubsidy > 50*COIN) { rSubsidy = 50*COIN; }
-    else if (rSubsidy < MIN_TX_FEE) { rSubsidy = MIN_TX_FEE; }
-    for(int i = 500000; i <= nHeight; i += 500000) rSubsidy *= 0.93; // yearly decline (7%)
-    return (int64)rSubsidy;
-}
-
-
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock)
-{
-    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
-    int nHeight = pindex0->nHeight;
-    int64 nSubsidy = 0;
-    
-//      double rDiff = GetDifficultyFromBitsV2(pindex0); 
-//      printf("@@BLKV2-test (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
-//	  nHeight, rDiff, double(nSubsidy)/double(COIN));
-      
-    if (fTestNet) {
-	if (nHeight%2 == 0) {
-	    nSubsidy = 100 * COIN;
-	}
-	else {
-	    nSubsidy = GetProofOfWorkReward_OPM(pindex0);
-	}
-	return nSubsidy + nFees;
-    }
-
-    if (nHeight <= END_MAGI_POW_HEIGHT_V2) {	// difficulty dependent PoW-II mining
-	nSubsidy = GetProofOfWorkReward_OPM(pindex0);
-    }
-    else {
-	nSubsidy = MIN_TX_FEE;
-    }
-
-    if (fDebugMagi) {
-      double rDiff = GetDifficultyFromBitsV2(pindex0); 
-      printf("@@PoWII-V2 (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
-	  nHeight, rDiff, double(nSubsidy)/double(COIN));
-    }
-
-    return nSubsidy + nFees;
-}
-
-
-#define M7Mv2_SCALE 2.545
 int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
 {
-    double nDiff = GetDifficultyFromBits(nBits);
-
     int64 nSubsidy = 0;
     
-    if (fTestNet && (nHeight%2 == 0))
+    if(nHeight <= 9)
     {
-	if(nHeight <= 10)
-	{
-	    nSubsidy = 100000 * COIN;
-	    return nSubsidy + nFees;
-	}
-	nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
-	if (fDebugMagi) printf("@@GPoWR-testnet nHeight = %d, nSubsidy = %"PRI64d", nDiff = %f\n", 
-	       nHeight, nSubsidy/COIN, nDiff);
-	return nSubsidy + nFees;
-    }
-    
-    /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
-	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
-				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
-
-	Remaining coins are: 404,995 (1.65%), that includes: 
-	Coin swap: 233,319 XMG (0.93%)
-	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
-
-	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
-	Some of posts regarding the coin swap: 
-	https://bitcointalk.org/index.php?topic=821170.0
-	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
-	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
-	
-	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
-    */
-    if(nHeight <= 10 && !fTestNet)
-    {
-        nSubsidy = 112500 * COIN;
-    }
-    else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) // difficulty dependent PoW-I mining
-    {
-	if (nHeight <= BLOCK_REWARD_ADJT) {
-	    nSubsidy = 495.05 * pow( (5.55243*(exp_n(-0.3*nDiff/15.762) - exp_n(-0.6*nDiff/15.762)))*nDiff, 0.5) / 8.61553;
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebug && fDebugMagi) printf("@@GPoWR nHeight = %d, nSubsidy = %"PRI64d", nDiff = %f\n", 
-				nHeight, nSubsidy/COIN, nDiff);
-	}
-	else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
-	    double nDiffcu = ((nHeight <= 2700) ? 2.2 : (2.2+(nHeight-2700)*0.0000274841));
-	    nSubsidy = 294.118 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39) - exp_n(-0.6*nDiff/0.39)))*nDiff, 0.5) / 1.335
-			   * exp_n2(nDiff/0.08, nDiffcu/0.08);
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebug && fDebugMagi) printf("@@GPoWR nHeight = %d, nSubsidy = %"PRI64d", nDiff = %f\n", 
-				nHeight, nSubsidy/COIN, nDiff);
-	}
-	else {
-	    double nDiffcu = ((nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ( (2.2+(nHeight-2700)*0.0000183227)) / M7Mv2_SCALE );
-	    nSubsidy = 294.118 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39*M7Mv2_SCALE) - exp_n(-0.6*nDiff/0.39*M7Mv2_SCALE)))*nDiff, 0.5) / 0.8456
-			   * exp_n2(nDiff/(0.08/M7Mv2_SCALE), nDiffcu/(0.08/M7Mv2_SCALE));
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebugMagi) printf("@@GPoWR nHeight = %d, nSubsidy = %"PRI64d", nDiff = %f\n", 
-				nHeight, nSubsidy/COIN, nDiff);
-	}
-    }
-    else if (nHeight <= END_MAGI_POW_HEIGHT_V2) // difficulty dependent PoW-II mining
-    {
-	double nDiffcu = log(nHeight)*0.1;
-	nSubsidy = 50 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39*M7Mv2_SCALE) - exp_n(-0.6*nDiff/0.39*M7Mv2_SCALE)))*nDiff, 0.5) / 0.8456
-			* exp_n2(nDiff/(0.16/M7Mv2_SCALE), nDiffcu/(0.16/M7Mv2_SCALE));
-	if (nSubsidy < 3) nSubsidy = 3;
-	nSubsidy *= COIN;
-	if (fDebug && fDebugMagi) printf("@@GPoWR nHeight = %d, nSubsidy = %"PRI64d", nDiff = %f\n", 
-			    nHeight, nSubsidy/COIN, nDiff);
-//	nSubsidy = 15. * 2500. / (pow((nDiff+500.)/10., 2.));
-//	if (nSubsidy < 3) nSubsidy = 3;
-//	nSubsidy *= COIN;
-	for(int i = 525600; i <= nHeight; i += 525600) nSubsidy *= 0.93; // yearly decline (7%)
+        nSubsidy = 200000000 * COIN;
     }
     else {
 	nSubsidy = MIN_TX_FEE;
     }
 
     return nSubsidy + nFees;
-}
-
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
-{
-    double rAPR, rWeit=20000.;
-    rAPR = rMaxAPR * ( ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) ) + 1 );
-    return rAPR;
 }
 
 double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR)
 {
-    double rAPR, rWeit=20000.;
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
-    return rAPR;
-}
-
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR)
-{
-    double rAPR, rWeit=500000.;
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
-    if (fDebugMagiPoS) printf("@PoS-APRV2 rAPR = %f\n", rAPR);
-    return rAPR;
+//    double rAPR, rWeit=500000.;
+//    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
+//           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
+    return rMaxAPR;
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
 {
     int64 nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
-		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE) : 
-		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+    double rAPR = GetAnnualInterest(nNetWorkWeit, MAX_APR_PROOF_OF_STAKE);
 
     int64 nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
 	if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
-
-	if (fDebug && fDebugMagi) printf("@@GPoSR nHeight = %d, nSubsidy = %"PRI64d", nCoinAge = %"PRI64d", rAPR = %f\n", 
-				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
 
     return nSubsidy + nFees;
 }
@@ -1385,194 +1107,8 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
     return bnNew.GetCompact();
 }
 
-#define MQW_TIME_COEFF_TESNT 1.0
-#define MQW_AVER_COEFF_TESNT 1.0
-#define MQW_EXPON_COEFF_TESNT 2.3
-#define WEIGHT_SCALE_TESNT 100.0
-unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfStake)
-{
-    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
-    if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
-
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 15;
-    CBigNum bnAverage;
-    CBigNum bnAveragePrev;
-
-    CBigNum bnTargetLimit = bnProofOfWorkLimit;
-    if (fProofOfStake)
-    {
-        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
-        bnTargetLimit = bnProofOfStakeLimit;
-    }
-
-    if (pindexLast == NULL)
-        return bnTargetLimit.GetCompact(); // genesis block
-
-    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
-    if (pindexPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // first block
-
-    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
-    if (pindexPrevPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // second block
-
-    nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-    if(nActualBlockSpacing < 0) { nActualBlockSpacing = 1; }
-    nActualTimeSpanMQW = nActualBlockSpacing;
-    double fw = exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF_TESNT*MQW_TIME_COEFF_TESNT/double(nTargetSpacingWork)) * MQW_AVER_COEFF_TESNT;
-    bnAverage.SetCompact(pindexPrev->nBits);
-    bnAverage = bnAverage * ((int64)(fw*WEIGHT_SCALE_TESNT));
-    
-    int64 nWeightTot = ((int64)(fw*WEIGHT_SCALE_TESNT));
-    double rWeight = 1.-fw;
-
-    for(unsigned int i = 1; pindexPrevPrev; i++)
-    {
-        if (i >= nTotPastBlocks) { break; }
-	pindexPrev = pindexPrevPrev;
-	pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
-        if (pindexPrevPrev == NULL) { assert(pindexPrev); break; }
-	nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-	if (nActualBlockSpacing > 0)
-	{
-	    nAveragedBlocks++;
-	    nActualTimeSpanMQW += nActualBlockSpacing;
-	    fw = exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF_TESNT*MQW_TIME_COEFF_TESNT/double(nTargetSpacingWork)) * MQW_AVER_COEFF_TESNT;
-	    bnAverage += (CBigNum().SetCompact(pindexPrev->nBits)) * ((int64)(fw*rWeight*WEIGHT_SCALE_TESNT));
-	    nWeightTot += ((int64)(fw*rWeight*WEIGHT_SCALE_TESNT));
-	    rWeight *= (1.-fw);
-	}
-    }
-    bnAverage /= nWeightTot;
-
-    CBigNum bnNew(bnAverage);
-
-    int64 nTargetTimeSpanMQW = nAveragedBlocks*nTargetSpacingWork;
-
-    if (nActualTimeSpanMQW < nTargetTimeSpanMQW/3)
-        nActualTimeSpanMQW = nTargetTimeSpanMQW/3;
-    if (nActualTimeSpanMQW > nTargetTimeSpanMQW*3)
-        nActualTimeSpanMQW = nTargetTimeSpanMQW*3;
-
-    // Retarget
-    bnNew *= nActualTimeSpanMQW;
-    bnNew /= nTargetTimeSpanMQW;
-
-    if (bnNew > bnProofOfWorkLimit){
-        bnNew = bnProofOfWorkLimit;
-    }
-     
-    return bnNew.GetCompact();
-}
-
-#define MQW_TIME_COEFF 1.0
-#define MQW_AVER_COEFF 1.0
-#define MQW_EXPON_COEFF 0.15
-#define WEIGHT_SCALE 100.0
-#define WEIGHT_MIN 0.005
-#define WEIGHT_MAX 0.8
-unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
-{
-    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
-    if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
-
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 15;
-    CBigNum bnAverage;
-    CBigNum bnAveragePrev;
-
-    CBigNum bnTargetLimit = bnProofOfWorkLimit;
-    if (fProofOfStake)
-    {
-        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
-        bnTargetLimit = bnProofOfStakeLimit;
-    }
-
-    if (pindexLast == NULL)
-        return bnTargetLimit.GetCompact(); // genesis block
-
-    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
-    if (pindexPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // first block
-
-    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
-    if (pindexPrevPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // second block
-
-    nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-    if(nActualBlockSpacing < 0) { nActualBlockSpacing = 1; }
-    nActualTimeSpanMQW = nActualBlockSpacing;
-    double fw = ( 1. - exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF*MQW_TIME_COEFF/double(nTargetSpacingWork)) ) * MQW_AVER_COEFF;
-    if (fw<WEIGHT_MIN) { fw = WEIGHT_MIN; }
-    else if (fw>WEIGHT_MAX) { fw = WEIGHT_MAX; }
-    bnAverage.SetCompact(pindexPrev->nBits);
-    bnAverage *= ((int64)(fw*WEIGHT_SCALE));
-    
-    int64 nWeightTot = ((int64)(fw*WEIGHT_SCALE));
-    double rWeight = 1.-fw;
-
-    for(unsigned int i = 1; pindexPrevPrev; i++)
-    {
-        if (i >= nTotPastBlocks) { break; }
-//        if (i == 1) { bnAverage.SetCompact(pindexPrev->nBits); }
- //       else {
-	pindexPrev = pindexPrevPrev;
-	pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
-        if (pindexPrevPrev == NULL) { assert(pindexPrev); break; }
-	nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-	if (nActualBlockSpacing > 0)
-	{
-	    nAveragedBlocks++;
-	    nActualTimeSpanMQW += nActualBlockSpacing;
-	    fw = ( 1. - exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF*MQW_TIME_COEFF/double(nTargetSpacingWork)) ) * MQW_AVER_COEFF;
-	    if (fw<WEIGHT_MIN) { fw = WEIGHT_MIN; }
-	    else if (fw>WEIGHT_MAX) { fw = WEIGHT_MAX; }
-//	    int64 w1 = fw * WEIGHT_SCALE;
-//	    int64 w2 = (1.-fw) * WEIGHT_SCALE;
-//		bnAverage = (w1 * (CBigNum().SetCompact(pindexPrev->nBits)) + w2 * bnAveragePrev) / (w1 + w2);
-	    bnAverage += (CBigNum().SetCompact(pindexPrev->nBits)) * ((int64)(fw*rWeight*WEIGHT_SCALE));
-	    nWeightTot += ((int64)(fw*rWeight*WEIGHT_SCALE));
-	    rWeight *= (1.-fw);
-	}
-//	}
-//	bnAveragePrev = bnAverage;
-    }
-    bnAverage /= nWeightTot;
-
-    CBigNum bnNew(bnAverage);
-
-    int64 nTargetTimeSpanMQW = nAveragedBlocks*nTargetSpacingWork;
-
-    if (nActualTimeSpanMQW < nTargetTimeSpanMQW/3)
-        nActualTimeSpanMQW = nTargetTimeSpanMQW/3;
-    if (nActualTimeSpanMQW > nTargetTimeSpanMQW*3)
-        nActualTimeSpanMQW = nTargetTimeSpanMQW*3;
-
-    // Retarget
-    bnNew *= nActualTimeSpanMQW;
-    bnNew /= nTargetTimeSpanMQW;
-
-    if (bnNew > bnProofOfWorkLimit){
-        bnNew = bnProofOfWorkLimit;
-    }
-     
-    return bnNew.GetCompact();
-}
-
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-        int DiffMode = 1;
-        if (fTestNet) {
-            if (pindexLast->nHeight+1 >= 24500) { DiffMode = 2; }
-            else if (pindexLast->nHeight+1 >= 20370) { DiffMode = 21; }
-        }
-        else {
-            if (pindexLast->nHeight+1 >= 33500) { DiffMode = 2; }
-        }
-        if (DiffMode == 1) { return GetNextTargetRequired_v1(pindexLast, fProofOfStake); }
-        else if (DiffMode == 2) { return MagiQuantumWave(pindexLast, fProofOfStake); }
-	else if (DiffMode == 21) { return MagiQuantumWave_TESNT(pindexLast, fProofOfStake); }
         return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 }
 
@@ -1802,7 +1338,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
 {
     // Take over previous transactions' spent pointers
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
-    // fMiner is true when called from the internal magi miner
+    // fMiner is true when called from the internal noblecoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
@@ -2069,9 +1605,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
 //	const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex); // find the nearest PoW block
 //        int64 nPoWReward = GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-        int64 nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ? 
-			    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
-			    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+        int64 nPoWReward = GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
 	// Check coinbase reward
         if (vtx[0].GetValueOut() > nPoWReward)
             return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d", height=%i)",
@@ -2084,7 +1618,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         // ppcoin: coin stake tx earns reward instead of paying fee
         uint64 nCoinAge;
-	bool fTxGetCoinAge = (IsPoSIIProtocolV2(pindex->nHeight)) ? vtx[1].GetCoinAgeV2(txdb, nCoinAge) : vtx[1].GetCoinAge(txdb, nCoinAge);
+	bool fTxGetCoinAge =  vtx[1].GetCoinAge(txdb, nCoinAge);
         if (!fTxGetCoinAge)
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
 //	const CBlockIndex* pIndex0 = GetLastPoSBlockIndex(pindex); // find the nearest PoS block
@@ -2386,55 +1920,6 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool CTransaction::GetCoinAgeV2(CTxDB& txdb, uint64& nCoinAge) const
-{
-    CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
-    int64 nValueIn, nTimeWeight;
-    nCoinAge = 0;
-
-    if (IsCoinBase())
-        return true;
-
-    BOOST_FOREACH(const CTxIn& txin, vin)
-    {
-        // First try finding the previous transaction in database
-        CTransaction txPrev;
-        CTxIndex txindex;
-
-	if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
-            continue;  // previous transaction not in main chain
-        if (nTime < txPrev.nTime)
-            return false;  // Transaction timestamp violation
-
-        // Read block header
-        CBlock block;
-        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
-            return false; // unable to read block of previous transaction
-
-        nValueIn = txPrev.vout[txin.prevout.n].nValue;
-        nTimeWeight = GetMagiWeightV2(nValueIn, block.GetBlockTime(), nTime);
-            if (nTimeWeight < nStakeMinAge)
-            continue; // only count coins meeting min age requirement
-
-        nTimeWeight = GetMagiWeightV2(nValueIn, txPrev.nTime, nTime);
-        bnCentSecond += CBigNum(nValueIn) * nTimeWeight / CENT;
-
-	CBigNum bnCoinDayPrint = CBigNum(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
-
-	if (fDebugMagiPoS)
-            printf("@Tx.GetCoinAgeV2 -> nValueIn=%"PRI64d"  txPrev.nTime=%d  nTimeDiff=%d  nTimeDiff=%d  bnCoinDay=%s\n", nValueIn / COIN, txPrev.nTime, nTime, nTime - txPrev.nTime, bnCoinDayPrint.ToString().c_str());
-	
-        if (fDebug && GetBoolArg("-printcoinage"))
-            printf("coin age nValueIn=%"PRI64d" nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString().c_str());
-    }
-
-    CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
-    if (fDebug && GetBoolArg("-printcoinage"))
-        printf("coin age bnCoinDay=%s\n", bnCoinDay.ToString().c_str());
-    nCoinAge = bnCoinDay.getuint64();
-    return true;
-}
-
 bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
 {
     CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
@@ -2470,9 +1955,6 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
 
 	CBigNum bnCoinDayPrint = CBigNum(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
 
-	if (fDebugMagiPoS)
-            printf("@Tx.GetCoinAge -> nValueIn=%"PRI64d"  txPrev.nTime=%d  nTimeDiff=%d  nTimeDiff=%d  bnCoinDay=%s\n", nValueIn / COIN, txPrev.nTime, nTime, nTime - txPrev.nTime, bnCoinDayPrint.ToString().c_str());
-	
         if (fDebug && GetBoolArg("-printcoinage"))
             printf("coin age nValueIn=%"PRI64d" nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString().c_str());
     }
@@ -2484,6 +1966,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
     return true;
 }
 
+
 // ppcoin: total coin age spent in block, in the unit of coin-days.
 bool CBlock::GetCoinAge(uint64& nCoinAge) const
 {
@@ -2493,7 +1976,7 @@ bool CBlock::GetCoinAge(uint64& nCoinAge) const
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         uint64 nTxCoinAge;
-        if (tx.GetCoinAgeV2(txdb, nTxCoinAge))
+        if (tx.GetCoinAge(txdb, nTxCoinAge))
             nCoinAge += nTxCoinAge;
         else
             return false;
@@ -3099,10 +2582,10 @@ bool LoadBlockIndex(bool fAllowNew)
 {
     if (fTestNet)
     {
-        pchMessageStart[0] = 0xf0;
-        pchMessageStart[1] = 0xb9;
-        pchMessageStart[2] = 0xb3;
-        pchMessageStart[3] = 0xd7;
+        pchMessageStart[0] = 0xfd;
+        pchMessageStart[1] = 0xc2;
+        pchMessageStart[2] = 0xb6;
+        pchMessageStart[3] = 0xf1;
 
         bnProofOfStakeLimit = bnProofOfStakeLimitTestNet; // 0x00000fff PoS base target is fixed in testnet
         bnProofOfWorkLimit = bnProofOfWorkLimitTestNet;  // 0x0000ffff PoW base target is fixed in testnet
@@ -3130,7 +2613,7 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "Super fracking, Physics Today 67(8), 34 (2014); doi: 10.1063/PT.3.2480";
+        const char* pszTimestamp = "6 Jan 2015: CNN: Millions in U.S. brace for record deep freeze";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
         txNew.vin.resize(1);
@@ -3143,15 +2626,15 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1410566399;
+        block.nTime    = 1421539200;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
         block.nNonce   = 1780637;
 
 	
         if (fTestNet)
         {
-            block.nTime    = 1407209708;
-            block.nNonce   = 23721450;
+            block.nTime    = 1421539200;
+            block.nNonce   = 23926075;
         }
         if (true && (block.GetHash() != hashGenesisBlock)) {
         // This will figure out a valid hash and Nonce if you're
@@ -3179,7 +2662,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.nNonce = %u \n\n", block.nNonce);
 
-	assert(block.hashMerkleRoot == uint256("70070d9e41ffd85685f8017fa8620fb5572ed8443822d799015d01d39e7fd4af"));
+	assert(block.hashMerkleRoot == uint256("af9ad7e2572bc1155b36648caffda95e5865343ae805431aedbbae553d3b928c"));
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
@@ -3467,7 +2950,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xf0, 0xb9, 0xb3, 0xd6 };
+unsigned char pchMessageStart[4] = { 0xc0, 0xdb, 0xf1, 0xfd }; 
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
@@ -4407,7 +3890,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// MagiMiner
+// NoblecoinMiner
 //
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
@@ -4548,18 +4031,15 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     static int64 nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
     CBlockIndex* pindexPrev = pindexBest;
 	
-if (fTestNet || pindexBest->nHeight >= 131100) {
     if (fProofOfStake)  // attempt to find a coinstake
     {
 	pblock->nBits = GetNextTargetRequired(pindexPrev, true);
 	CTransaction txCoinStake;
 	int64 nSearchTime = txCoinStake.nTime; // search to current time
-	if (fDebugMagiPoS)
-            printf("@CreateNewBlock -> txCoinStake.nTime=%"PRI64d"\n", txCoinStake.nTime);
 	if (nSearchTime > nLastCoinStakeSearchTime)
 	{
 			// printf(">>> OK1\n");
-	    if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, pindexPrev->nHeight+1, nSearchTime-nLastCoinStakeSearchTime, 0, txCoinStake))
+	    if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, 0, txCoinStake))
 	    {
 				if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - nMaxClockDrift))
 		{   // make sure coinstake would meet timestamp protocol
@@ -4567,15 +4047,12 @@ if (fTestNet || pindexBest->nHeight >= 131100) {
 		    pblock->vtx[0].vout[0].SetEmpty();
 		    pblock->vtx[0].nTime = txCoinStake.nTime;
 		    pblock->vtx.push_back(txCoinStake); 
-		    if (fDebugMagiPoS)
-			printf("@CreateNewBlock-PoS found -> txCoinStake.nTime=%"PRI64d"\n", txCoinStake.nTime);
 		}
 	    }
 	    nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
 	    nLastCoinStakeSearchTime = nSearchTime;
 	}
     }
-}
 	
     pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
 
@@ -4770,32 +4247,7 @@ if (fTestNet || pindexBest->nHeight >= 131100) {
 
         if (fDebug && GetBoolArg("-printpriority"))
             printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
-	
-if (!fTestNet && pindexBest->nHeight < 131100) {
-    if (fProofOfStake)  // attempt to find a coinstake
-    {
-	pblock->nBits = GetNextTargetRequired(pindexPrev, true);
-	CTransaction txCoinStake;
-	int64 nSearchTime = txCoinStake.nTime; // search to current time
-	if (nSearchTime > nLastCoinStakeSearchTime)
-	{
-			// printf(">>> OK1\n");
-	    if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, pindexPrev->nHeight+1, nSearchTime-nLastCoinStakeSearchTime, nFees, txCoinStake))
-	    {
-				if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - nMaxClockDrift))
-		{   // make sure coinstake would meet timestamp protocol
-		    // as it would be the same as the block timestamp
-		    pblock->vtx[0].vout[0].SetEmpty();
-		    pblock->vtx[0].nTime = txCoinStake.nTime;
-		    pblock->vtx.push_back(txCoinStake);
-		}
-	    }
-	    nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
-	    nLastCoinStakeSearchTime = nSearchTime;
-	}
-    }
-}
-	
+
 /*
 	if (pblock->IsProofOfWork()) // the block under minting is PoW
 	{
@@ -4815,9 +4267,7 @@ if (!fTestNet && pindexBest->nHeight < 131100) {
         if (pblock->IsProofOfWork())
 	{
             pblock->UpdateTime(pindexPrev);
-	    pblock->vtx[0].vout[0].nValue = (IsPoWIIRewardProtocolV2(pblock->nTime)) ? 
-					    GetProofOfWorkRewardV2(pindexPrev, nFees, true) : 
-					    GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nFees);
+	    pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nFees);
 	}
         pblock->nNonce         = 0;
     }
@@ -4896,10 +4346,10 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget && pblock->IsProofOfWork())
-        return error("MagiMiner : proof-of-work not meeting target");
+        return error("NoblecoinMiner : proof-of-work not meeting target");
 
     //// debug print
-    printf("MagiMiner:\n");
+    printf("NoblecoinMiner:\n");
     printf("new block found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
     pblock->print();
     printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
@@ -4908,7 +4358,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
-            return error("MagiMiner : generated block is stale");
+            return error("NoblecoinMiner : generated block is stale");
 
         // Remove key from key pool
         reservekey.KeepKey();
@@ -4921,33 +4371,33 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
-            return error("MagiMiner : ProcessBlock, block not accepted");
+            return error("NoblecoinMiner : ProcessBlock, block not accepted");
     }
 
     return true;
 }
 
-void static ThreadMagiMiner(void* parg);
+void static ThreadNoblecoinMiner(void* parg);
 
-static bool fGenerateMagi = false;
+static bool fGenerateNoblecoin = false;
 static bool fLimitProcessors = false;
 static int nLimitProcessors = -1;
 
 
 
-void MagiMiner(CWallet *pwallet, bool fProofOfStake)
+void NoblecoinMiner(CWallet *pwallet, bool fProofOfStake)
 {
-    printf("MagiMiner started for proof-of-%s\n", fProofOfStake? "stake" : "work");
+    printf("NoblecoinMiner started for proof-of-%s\n", fProofOfStake? "stake" : "work");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as the mining thread
-    RenameThread("magi-miner");
+    RenameThread("noblecoin-miner");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (fGenerateMagi || fProofOfStake)
+    while (fGenerateNoblecoin || fProofOfStake)
     {
         if (fShutdown)
             return;
@@ -4958,7 +4408,7 @@ void MagiMiner(CWallet *pwallet, bool fProofOfStake)
             Sleep(1000);
             if (fShutdown)
                 return;
-            if (!fGenerateMagi && !fProofOfStake)
+            if (!fGenerateNoblecoin && !fProofOfStake)
                 return;
         }
 
@@ -4978,14 +4428,14 @@ void MagiMiner(CWallet *pwallet, bool fProofOfStake)
             // ppcoin: if proof-of-stake block found then process block
             if (pblock->IsProofOfStake())
             {
-                printf("MagiMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str());
+                printf("NoblecoinMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str());
 
 		if (!pblock->SignBlock(*pwalletMain))
                 {
                     continue;
                 }
                 strMintWarning = "";
-		printf("MagiMiner : proof-of-stake block was signed %s\n", pblock->GetHash().ToString().c_str());
+		printf("NoblecoinMiner : proof-of-stake block was signed %s\n", pblock->GetHash().ToString().c_str());
                 SetThreadPriority(THREAD_PRIORITY_NORMAL);
                 CheckWork(pblock.get(), *pwalletMain, reservekey);
                 SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -4994,7 +4444,7 @@ void MagiMiner(CWallet *pwallet, bool fProofOfStake)
             continue;
         }
 
-        printf("Running MagiMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
+        printf("Running NoblecoinMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
@@ -5103,35 +4553,35 @@ void MagiMiner(CWallet *pwallet, bool fProofOfStake)
 }
 
 
-void static ThreadMagiMiner(void* parg)
+void static ThreadNoblecoinMiner(void* parg)
 {
     CWallet* pwallet = (CWallet*)parg;
     try
     {
         vnThreadsRunning[THREAD_MINER]++;
-        MagiMiner(pwallet, false);
+        NoblecoinMiner(pwallet, false);
         vnThreadsRunning[THREAD_MINER]--;
     }
     catch (std::exception& e) {
         vnThreadsRunning[THREAD_MINER]--;
-        PrintException(&e, "ThreadMagiMiner()");
+        PrintException(&e, "ThreadNoblecoinMiner()");
     } catch (...) {
         vnThreadsRunning[THREAD_MINER]--;
-        PrintException(NULL, "ThreadMagiMiner()");
+        PrintException(NULL, "ThreadNoblecoinMiner()");
     }
     nHPSTimerStart = 0;
     if (vnThreadsRunning[THREAD_MINER] == 0)
         dHashesPerSec = 0;
-    printf("ThreadMagiMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
+    printf("ThreadNoblecoinMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
 }
 
 
-void GenerateMagi(bool fGenerate, CWallet* pwallet)
+void GenerateNoblecoin(bool fGenerate, CWallet* pwallet)
 {
-    fGenerateMagi = fGenerate;
+    fGenerateNoblecoin = fGenerate;
     nLimitProcessors = GetArg("-genproclimit", -1);
     if (nLimitProcessors == 0)
-        fGenerateMagi = false;
+        fGenerateNoblecoin = false;
     fLimitProcessors = (nLimitProcessors != -1);
 
     if (fGenerate)
@@ -5143,11 +4593,11 @@ void GenerateMagi(bool fGenerate, CWallet* pwallet)
         if (fLimitProcessors && nProcessors > nLimitProcessors)
             nProcessors = nLimitProcessors;
         int nAddThreads = nProcessors - vnThreadsRunning[THREAD_MINER];
-        printf("Starting %d MagiMiner threads\n", nAddThreads);
+        printf("Starting %d NoblecoinMiner threads\n", nAddThreads);
         for (int i = 0; i < nAddThreads; i++)
         {
-            if (!NewThread(ThreadMagiMiner, pwallet))
-                printf("Error: NewThread(ThreadMagiMiner) failed\n");
+            if (!NewThread(ThreadNoblecoinMiner, pwallet))
+                printf("Error: NewThread(ThreadNoblecoinMiner) failed\n");
             Sleep(10);
         }
     }

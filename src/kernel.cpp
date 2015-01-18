@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2013 The PPCoin developers
-// Copyright (c) 2014 The Magi developers
+// Copyright (c) 2014 The Noblecoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -24,48 +24,13 @@ typedef std::map<int, unsigned int> MapModifierCheckpoints;
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
     ( 0,	0xfd11f4e7 )
-    ( 9,	0x4fdba6a6 )
-    ( 19,	0x8300e57b )
-    ( 99,	0xb74d1791 )
-    ( 199,	0x52ae43ca )
-    ( 999,	0x47fecb89 )
-    ( 1999,	0x256f6e94 )
-    ( 9999,	0x66bb24af )
-    ( 19999,	0xadc5749e )
-    ( 29999,	0x839a4815 )
-    ( 37090,	0x5e04a01a )
-    ( 49999,	0x0d209374 )
-    ( 69999,	0xa73d2057 )
-    ( 89999,	0x53fd30d8 )
-    ( 109999,	0xd82859e7 )
-    ( 123838,	0xfb9d85a6 )
 ;
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic (TestNet)
 static std::map<int, unsigned int> mapStakeModifierCheckpointsTestNet =
     boost::assign::map_list_of
-        ( 0,	0x0e00670b )
-        ( 999,	0x727489b2 )
-        ( 1999,	0x654dcb7e )
-        ( 9999,	0x2c9333e0 )
-        ( 19999,0xf40a3252 )
-        ( 27680,0xe7957d36 )
+    ( 0,	0x0e00670b )
     ;
-
-inline double wfa(double x)
-{
-    return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
-}
-
-inline double wfb(double x)
-{
-    return (1 / (1 + exp_n( (x-0.06)/0.06 ))) + 1;
-}
-
-inline double wfc(double x)
-{
-    return (1 / (1 + exp_n( (x-0.6)/0.3 )));
-}
 
 inline double wfaV2(double x)
 {
@@ -83,37 +48,6 @@ inline double wfcV2(double x)
 }
 
 // Get time weight
-int64 GetMagiWeight_TestNet(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
-{
-    double nWeight = 0;
-    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
-    
-    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - nStakeMinAge)) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
-
-    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
-}
-
-int64 GetMagiWeight_TestNetV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
-{
-    double nWeight = 0;
-    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
-    
-    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - nStakeMinAge)) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
-
-    if (fDebugMagiPoS) printf("@GetMagiWeight_TestNetV2 = %"PRI64d"\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge))));
-
-    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge)));
-}
-
-// Get time weight
 int64 GetMagiWeight(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
 {
     double nWeight = 0;
@@ -122,35 +56,11 @@ int64 GetMagiWeight(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd
     if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
     
     double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - nStakeMinAge)) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-
-    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
-
-    if (fTestNet) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
-    
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 4. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 4. / 8.177) ) * rStakeDays;
-
-    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
-}
-
-// Get time weight
-int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
-{
-    double nWeight = 0;
-    int64 nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF_V2) return 0;
-    
-    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - nStakeMinAge)) / (24. * 60. * 60.);
     double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfaV2(rMro)/wfbV2(rMro)/wfcV2(rMro));
 
     if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
 
-    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
-    
     nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
-
-    if (fDebugMagiPoS) printf("@GetMagiWeightV2 = %"PRI64d"\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge)));
 
     return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
 }
@@ -420,8 +330,6 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, const CBl
     if (nTimeBlockFrom + nStakeMinAge > nTimeTx) // Min age requirement
         return error("CheckStakeKernelHash() : min age violation");
 
-    if(!pindexPrev && fDebugMagi) printf("ERROR: CheckStakeKernelHash() - pindexPrev is null");
-
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
     int64 nValueIn = txPrev.vout[prevout.n].nValue;
@@ -433,9 +341,7 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, const CBl
     // this change increases active coins participating the hash and helps
     // to secure the network when proof-of-stake difficulty is low
 //    int64 nTimeWeight = min((int64)nTimeTx - txPrev.nTime, (int64)nStakeMaxAge) - nStakeMinAge;
-    int64 nTimeWeight = (IsPoSIIProtocolV2(pindexPrev->nHeight+1)) ?
-			GetMagiWeightV2(nValueIn, txPrev.nTime, nTimeTx) : 
-			GetMagiWeight(nValueIn, txPrev.nTime, nTimeTx);
+    int64 nTimeWeight = GetMagiWeight(nValueIn, txPrev.nTime, nTimeTx);
     CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
 
 	// printf(">>> CheckStakeKernelHash: nTimeWeight = %"PRI64d"\n", nTimeWeight);
@@ -580,6 +486,7 @@ unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex)
 // Check stake modifier hard checkpoints
 bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierChecksum)
 {
+    return true;
     MapModifierCheckpoints& checkpoints = (fTestNet ? mapStakeModifierCheckpointsTestNet : mapStakeModifierCheckpoints);
     if (checkpoints.count(nHeight))
         return nStakeModifierChecksum == checkpoints[nHeight];

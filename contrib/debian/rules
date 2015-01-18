@@ -5,29 +5,29 @@
 #build/bitcoind::
 #	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_bitcoin)
 
-DEB_INSTALL_EXAMPLES_magid += debian/examples/*
-DEB_INSTALL_MANPAGES_magid += debian/manpages/*
+DEB_INSTALL_EXAMPLES_noblecoind += debian/examples/*
+DEB_INSTALL_MANPAGES_noblecoind += debian/manpages/*
 
 %:
 	dh --with bash-completion $@
 
 override_dh_auto_build:
-	cd src; $(MAKE) -f makefile.unix magid
+	cd src; $(MAKE) -f makefile.unix noblecoind
 	$(MAKE)
 
 override_dh_auto_clean:
-	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f magi-qt; fi
+	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f noblecoin-qt; fi
 	cd src; $(MAKE) -f makefile.unix clean
 
 override_dh_auto_configure:
-	qmake magi-qt.pro USE_QRCODE=1
+	qmake noblecoin-qt.pro USE_QRCODE=1
 
 override_dh_auto_test:
-	cd src; $(MAKE) -f makefile.unix test_magi
-	src/test_magi
+	cd src; $(MAKE) -f makefile.unix test_noblecoin
+	src/test_noblecoin
 
 # Ensure wrapper is set executable
-binary-post-install/magid:
-	chmod +x $(cdbs_curdestdir)usr/bin/magid
-binary-post-install/magi-qt:
-	chmod +x $(cdbs_curdestdir)usr/bin/magi-qt
+binary-post-install/noblecoind:
+	chmod +x $(cdbs_curdestdir)usr/bin/noblecoind
+binary-post-install/noblecoin-qt:
+	chmod +x $(cdbs_curdestdir)usr/bin/noblecoin-qt

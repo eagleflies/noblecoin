@@ -100,10 +100,10 @@ OBJS= \
     obj/whirlpool.o \
     obj/magimath.o
 
-all: magid.exe
+all: noblecoind.exe
 
-test check: test_magi.exe FORCE
-	test_magi.exe
+test check: test_noblecoin.exe FORCE
+	test_noblecoin.exe
 
 obj/%.o: %.cpp $(HEADERS)
 	g++ -c $(CFLAGS) -o $@ $<
@@ -117,7 +117,7 @@ obj/%.o: hash/%.cpp $(HEADERS)
 obj/%.o: hash/%.c $(HEADERS)
 	$(CXX) -c $(CFLAGS) -fpermissive -o $@ $<
 
-magid.exe: $(OBJS:obj/%=obj/%)
+noblecoind.exe: $(OBJS:obj/%=obj/%)
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -125,11 +125,11 @@ TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 obj-test/%.o: test/%.cpp $(HEADERS)
 	g++ -c $(TESTDEFS) $(CFLAGS) -o $@ $<
 
-test_magi.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_noblecoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework $(LIBS)
 
 clean:
-	-del /Q magi test_magi
+	-del /Q noblecoin test_noblecoin
 	-del /Q obj\*
 	-del /Q obj-test\*
 

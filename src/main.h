@@ -27,29 +27,18 @@ class CRequestTracker;
 class CNode;
 
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
-static const int PRM_MAGI_POW_HEIGHT = 80000;
-static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block
-static const int END_MAGI_POW_HEIGHT = 500000;
-static const int END_MAGI_POW_HEIGHT_V2 = 5000000; // PoW-II aims to issue 12 mil and more than 10 years
-
-static const int BLOCK_REWARD_ADJT = 2700;
-static const int BLOCK_REWARD_ADJT_M7M_V2 = 32750;
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-static const int64 MIN_TX_FEE = .0001 * COIN;
+static const int64 MIN_TX_FEE = 0.01 * COIN;
 static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
-static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
-//static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
-//static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
-static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
+static const int64 MAX_MONEY = 15000000000 * COIN;  //  NobleCoin: maximum of 15 billion coins
+static const double MAX_APR_PROOF_OF_STAKE = 0.075;
 static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
-static const int64 MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
-static const int64 MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
+static const int64 MAX_MONEY_STAKE_REF = 3000000000 * COIN;	// 3 billion
 
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
@@ -66,37 +55,8 @@ inline bool IsMiningProofOfWork(int nHeight)
 inline bool IsMiningProofOfStake(int nHeight ) 
 {
     if (fTestNet) return nHeight > 10;
-    if (nHeight <= BLOCK_REWARD_ADJT) {
-	return (nHeight > 6720); // two weeks
-    }
-    else
-	return (nHeight > 10080); // three weeks
+    return (nHeight > 10080);
 }
-
-#define FORK_BLOCK_REWARDS_V2_TESNT 1419402600
-#define FORK_BLOCK_REWARDS_V2 1420650000
-inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
-{
-    if (fTestNet) {
-	return (nTime0 > FORK_BLOCK_REWARDS_V2_TESNT);
-    }
-    else {
-	return (nTime0 > FORK_BLOCK_REWARDS_V2);
-    }
-}
-
-inline bool IsPoSIIProtocolV2(int nHeight)
-{
-    if (fTestNet) {
-	if (nHeight > 40860) fTestNetWeightV2 = true;
-	else fTestNetWeightV2 = false;
-	return nHeight > 40780;
-    }
-    else {
-	return (nHeight > 131300);
-    }
-}
-
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -105,7 +65,7 @@ static const int fHaveUPnP = false;
 #endif
 
 static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
-static const uint256 hashGenesisBlockTestNet ("0x000005fef85d8e77a4307afc8a9dc8f4441241767b06a4035d565bfa5b0b7d31");
+static const uint256 hashGenesisBlockTestNet ("0x000008e7fee9f9c0319383e2911153584c10619f0c7126ba91c28fbafd4bf81f");
 
 static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
@@ -163,14 +123,13 @@ CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn);
-void GenerateMagi(bool fGenerate, CWallet* pwallet);
+void GenerateNoblecoin(bool fGenerate, CWallet* pwallet);
 CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false);
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
 int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
@@ -182,7 +141,7 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
 const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
-void MagiMiner(CWallet *pwallet, bool fProofOfStake);
+void NoblecoinMiner(CWallet *pwallet, bool fProofOfStake);
 void ResendWalletTransactions();
 double GetDifficultyFromBits(unsigned int nBits);
 double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
@@ -766,7 +725,6 @@ public:
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const;  // ppcoin: get transaction coin age
-    bool GetCoinAgeV2(CTxDB& txdb, uint64& nCoinAge) const;  // ppcoin: get transaction coin age
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
@@ -973,25 +931,7 @@ public:
 
     uint256 GetHash() const
     {
-	if (fTestNet)
-	{
-	    if(nTime<1413590400) {
-		return hash_M7M(BEGIN(nVersion), END(nNonce));
-	    }
-	    else {
-		return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-	    }
-	}
-	else
-	{
-	    if(nTime<1414330200) {
-		return hash_M7M(BEGIN(nVersion), END(nNonce));
-	    }
-	    else {
-		return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-	    }
-	}
-    
+	return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
     }
 
     int64 GetBlockTime() const

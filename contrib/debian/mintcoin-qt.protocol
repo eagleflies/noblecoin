@@ -1,6 +1,6 @@
 [Protocol]
-exec=magi-qt '%u'
-protocol=magi
+exec=noblecoin-qt '%u'
+protocol=noblecoin
 input=none
 output=none
 helper=true

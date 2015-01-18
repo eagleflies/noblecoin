@@ -1,9 +1,9 @@
 *.tar.gz
 *.ext
 src/*.exe
-src/magi
-src/magid
-src/test_magi
+src/noblecoin
+src/noblecoind
+src/test_noblecoin
 .*.swp
 *.*~*
 *.bak
@@ -12,22 +12,22 @@ src/test_magi
 *.o
 *.patch
 *.mod
-.magi
+.noblecoin
 
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-magi-qt
-magi-qt_*
-Magi-Qt.app
+noblecoin-qt
+noblecoin-qt_*
+Noblecoin-Qt.app
 qt-builds/version-og/Makefile
-qt-builds/version-og/magi-qt
-qt-builds/version-og/magi-qt_*
-qt-builds/version-og/Magi-Qt.app
+qt-builds/version-og/noblecoin-qt
+qt-builds/version-og/noblecoin-qt_*
+qt-builds/version-og/Noblecoin-Qt.app
 
 # Unit-tests
 Makefile.test
-magi-qt_test
+noblecoin-qt_test
 
 # Resources cpp
 qrc_*.cpp
@@ -39,4 +39,3 @@ qt-builds/version-og/qrc_*.cpp
 # Mac specific
 .DS_Store
 build
-qt-builds/version-og/build
