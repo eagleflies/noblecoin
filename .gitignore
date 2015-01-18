@@ -20,10 +20,6 @@ Makefile
 noblecoin-qt
 noblecoin-qt_*
 Noblecoin-Qt.app
-qt-builds/version-og/Makefile
-qt-builds/version-og/noblecoin-qt
-qt-builds/version-og/noblecoin-qt_*
-qt-builds/version-og/Noblecoin-Qt.app
 
 # Unit-tests
 Makefile.test

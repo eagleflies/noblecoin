@@ -1,7 +1,7 @@
 
 Noblecoin development tree
 
-Noblecoin is a hybrid PoW/PoS-based cryptocurrency. Noblecoin is also a CPU coin. 
+Noblecoin is a PoS-based cryptocurrency. 
 
 Development process
 ===========================
@@ -30,5 +30,3 @@ in this manner will have their corresponding issue labeled 'stagnant'.
 Issues with no commits will be given a similar warning, and closed after
 15 days from their last activity. Issues closed in this manner will be 
 labeled 'stale'.
-
-Coins Source Verification
