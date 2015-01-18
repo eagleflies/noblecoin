@@ -54,8 +54,8 @@ inline bool IsMiningProofOfWork(int nHeight)
 
 inline bool IsMiningProofOfStake(int nHeight ) 
 {
-    if (fTestNet) return nHeight > 10;
-    return (nHeight > 10080);
+    if (fTestNet) return nHeight > 9;
+    return (nHeight > 9);
 }
 
 #ifdef USE_UPNP
