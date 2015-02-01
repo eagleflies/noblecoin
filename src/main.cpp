@@ -935,12 +935,7 @@ int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
     int64 nSubsidy = 0;
     
     if (fTestNet) {
-	if (nHeight%2 == 0) {
-	    nSubsidy = 100 * COIN;
-	}
-	else {
-	    nSubsidy = GetProofOfWorkReward_OPM(pindex0);
-	}
+	nSubsidy = 50000 * COIN;
 	return nSubsidy + nFees;
     }
 
@@ -2592,7 +2587,7 @@ bool LoadBlockIndex(bool fAllowNew)
         bnProofOfWorkLimit = bnProofOfWorkLimitTestNet;  // 0x0000ffff PoW base target is fixed in testnet
 
         nStakeMinAge = 60 * 10; 		// test net min age: 10 min
-        nStakeMaxAge = 60 * 60 * 24 * 60;	// test net max age: 60 days
+        nStakeMaxAge = 60 * 60 * 24 * 30;	// test net max age: 30 days
 
         nCoinbaseMaturity = 10; 		// test maturity is 10 blocks
     }
