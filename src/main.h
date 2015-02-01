@@ -26,7 +26,7 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
-static const int MAX_MAGI_POW_HEIGHT = 43200;
+static const int MAX_POW_HEIGHT = 40000;
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -36,9 +36,9 @@ static const unsigned int MAX_INV_SZ = 50000;
 static const int64 MIN_TX_FEE = 0.01 * COIN;
 static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
 static const int64 MAX_MONEY = 15000000000 * COIN;  //  NobleCoin: maximum of 15 billion coins
-static const double MAX_APR_PROOF_OF_STAKE = 0.075;
+static const double APR_PROOF_OF_STAKE = 0.08;
 static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
-static const int64 MAX_MONEY_STAKE_REF = 3000000000 * COIN;	// 3 billion
+static const int64 MAX_MONEY_STAKE_REF = 450000000 * COIN;	// 0.45 billion
 
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
@@ -48,9 +48,9 @@ static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20
 
 inline bool IsMiningProofOfWork(int nHeight)
 {
-    return nHeight <= MAX_MAGI_POW_HEIGHT;
+    if (fTestNet) return nHeight  <= MAX_POW_HEIGHT;
+    return nHeight <= MAX_POW_HEIGHT;
 }
-//inline bool IsMiningProofOfWork() { return true; }
 
 inline bool IsMiningProofOfStake(int nHeight ) 
 {
@@ -144,9 +144,6 @@ const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
 void NoblecoinMiner(CWallet *pwallet, bool fProofOfStake);
 void ResendWalletTransactions();
 double GetDifficultyFromBits(unsigned int nBits);
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
-//bool CheckMoneySupply(CBlockIndex* pindexPrev);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 

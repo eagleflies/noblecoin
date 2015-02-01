@@ -61,7 +61,6 @@ Value gethashespersec(const Array& params, bool fHelp)
     return (boost::int64_t)dHashesPerSec;
 }
 
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
 Value getmininginfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -72,7 +71,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
     int64_t nNetWorkWeit = GetPoSKernelPS();
     uint64 nEstimateTime = 90 * GetPoSKernelPS() / nWeight;
-    double rAPR = GetAnnualInterest(nNetWorkWeit, MAX_APR_PROOF_OF_STAKE);
+    double rAPR = APR_PROOF_OF_STAKE;
 
     Object obj, diff, blockvalue, weight;
     obj.push_back(Pair("blocks",           (int)nBestHeight));
@@ -127,7 +126,7 @@ double GetPoWHashPS(int lookup, int height)
 {
     if (pindexBest == NULL)
         return 0;
-    if (pindexBest->nHeight >= MAX_MAGI_POW_HEIGHT)
+    if (pindexBest->nHeight >= MAX_POW_HEIGHT)
         return 0;
 
     const CBlockIndex *pindex0 = pindexBest;
@@ -177,7 +176,7 @@ double GetPoWMHashPS() {
 
 double GetPoWMHashPS_old()
 {
-    if (pindexBest->nHeight >= MAX_MAGI_POW_HEIGHT)
+    if (pindexBest->nHeight >= MAX_POW_HEIGHT)
         return 0;
 
     int nPoWInterval = 72;

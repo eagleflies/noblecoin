@@ -43,12 +43,12 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 unsigned int nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 2 hr
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
-unsigned int nStakeTargetSpacing = 60;		// 60 sec PoS block spacing
+unsigned int nStakeTargetSpacing = 90;		// 60 sec PoS block spacing
 
 static const int64 nTargetTimespan = 60 * 30;	// 30 min
-static const int64 nTargetSpacingWork = 5 * nStakeTargetSpacing; // 5 min PoW block spacing
+static const int64 nTargetSpacingWork = 4 * nStakeTargetSpacing; // 6 min PoW block spacing
 
-int64 nChainStartTime = 1421539200;
+int64 nChainStartTime = 1422748800;
 int nCoinbaseMaturity = 100;			// 100 blocks
 CBlockIndex* pindexGenesisBlock = NULL;
 //int64 nLastPrevMoneySupply;
@@ -934,6 +934,16 @@ int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
 {
     int64 nSubsidy = 0;
     
+    if (fTestNet) {
+	if (nHeight%2 == 0) {
+	    nSubsidy = 100 * COIN;
+	}
+	else {
+	    nSubsidy = GetProofOfWorkReward_OPM(pindex0);
+	}
+	return nSubsidy + nFees;
+    }
+
     if(nHeight <= 9)
     {
         nSubsidy = 200000000 * COIN;
@@ -945,19 +955,10 @@ int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR)
-{
-//    double rAPR, rWeit=500000.;
-//    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-//           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
-    return rMaxAPR;
-}
-
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
 {
-    int64 nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = GetAnnualInterest(nNetWorkWeit, MAX_APR_PROOF_OF_STAKE);
+    double rAPR = APR_PROOF_OF_STAKE;
 
     int64 nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
@@ -2613,7 +2614,7 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "6 Jan 2015: CNN: Millions in U.S. brace for record deep freeze";
+        const char* pszTimestamp = "6 Jan 2015: CNN: Millions in U.S. brace for record deep freeze.";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
         txNew.vin.resize(1);
@@ -2626,14 +2627,14 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1421539200;
+        block.nTime    = 1422748800;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
         block.nNonce   = 1780637;
 
 	
         if (fTestNet)
         {
-            block.nTime    = 1421539200;
+            block.nTime    = 1422748800;
             block.nNonce   = 23926075;
         }
         if (true && (block.GetHash() != hashGenesisBlock)) {
