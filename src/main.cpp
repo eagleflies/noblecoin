@@ -932,7 +932,7 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 
 int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 2000;
+    int64 nSubsidy = 2000 * COIN;
     
     if(nHeight <= 10)
     {
@@ -2601,7 +2601,7 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "6 Jan 2015: CNN: Millions in U.S. brace for record deep freeze.";
+        const char* pszTimestamp = "2015-02-02 Winter time is good for noble people.";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
         txNew.vin.resize(1);
@@ -2616,15 +2616,15 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nVersion = 1;
         block.nTime    = 1422748800;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 5189035;
+        block.nNonce   = 6548694;
 
 	
         if (fTestNet)
         {
             block.nTime    = 1422748800;
-            block.nNonce   = 24222499;
+            block.nNonce   = 24925220;
         }
-        if (false && (block.GetHash() != hashGenesisBlock)) {
+        if (false&& (block.GetHash() != hashGenesisBlock)) {
         // This will figure out a valid hash and Nonce if you're
         // creating a different genesis block:
             uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
@@ -2650,7 +2650,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.nNonce = %u \n\n", block.nNonce);
 
-	assert(block.hashMerkleRoot == uint256("8ae63e59be6ff91a7a028b89b8d888957ec58b1988f53be1ed6daafba9758267"));
+	assert(block.hashMerkleRoot == uint256("ee15a738e5e5b99fe2b6f71a53497b8eaf0eef16b7b5444f484d566a2294cecf"));
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
