@@ -1066,7 +1066,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Unix: ~/.noblecoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Noblecoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "NoblecoinPos";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -1078,10 +1078,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     fs::create_directory(pathRet);
-    return pathRet / "Noblecoin";
+    return pathRet / "NoblecoinPos";
 #else
     // Unix
-    return pathRet / ".noblecoin";
+    return pathRet / ".noblecoinPos";
 #endif
 #endif
 }

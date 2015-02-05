@@ -49,7 +49,7 @@ static const int64 nTargetTimespan = 60 * 30;	// 30 min
 static const int64 nTargetSpacingWork = 2 * nStakeTargetSpacing; // 3 min PoW block spacing
 
 int64 nChainStartTime = 1423055641;
-int nCoinbaseMaturity = 50;			// 50 blocks
+int nCoinbaseMaturity = 10;			// 10 blocks
 CBlockIndex* pindexGenesisBlock = NULL;
 //int64 nLastPrevMoneySupply;
 int nBestHeight = -1;
