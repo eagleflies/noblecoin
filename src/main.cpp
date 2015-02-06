@@ -932,7 +932,7 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 
 int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 2000 * COIN;
+    int64 nSubsidy = 1000 * COIN;
     
     if(nHeight <= 10)
     {
