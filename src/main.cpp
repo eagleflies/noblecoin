@@ -2614,9 +2614,9 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1423123392;
+        block.nTime    = 1423210893;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 7441784;
+        block.nNonce   = 7458590;
 
 	
         if (fTestNet)
@@ -2624,7 +2624,7 @@ bool LoadBlockIndex(bool fAllowNew)
             block.nTime    = 1422748800;
             block.nNonce   = 24925220;
         }
-        if (false&& (block.GetHash() != hashGenesisBlock)) {
+        if (false && (block.GetHash() != hashGenesisBlock)) {
         // This will figure out a valid hash and Nonce if you're
         // creating a different genesis block:
             uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
