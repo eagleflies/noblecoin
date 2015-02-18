@@ -48,7 +48,7 @@ unsigned int nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
 static const int64 nTargetTimespan = 60 * 30;	// 30 min
 static const int64 nTargetSpacingWork = 4 * nStakeTargetSpacing; // 6 min PoW block spacing
 
-int64 nChainStartTime = 1423055641;
+int64 nChainStartTime = 1424169662;
 int nCoinbaseMaturity = 50;			// 50 blocks
 CBlockIndex* pindexGenesisBlock = NULL;
 //int64 nLastPrevMoneySupply;
@@ -2087,9 +2087,16 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     if (IsProofOfStake() && (vtx[0].vout.size() != 1 || !vtx[0].vout[0].IsEmpty()))
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
 
-    // Check coinbase timestamp
-    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
-        return DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
+    printf("**CheckBlock() nTimeBlock=%"PRI64d" nTimeTx=%u\n", GetBlockTime(), vtx[0].nTime);
+    // Check coinbase timestamp. This is likely to fail for PoW since vtx[0].nTime is set to
+    // the moment when previous block was generated. Which was not an issue with nMaxClockDrift
+    // set to 120 minutes but with much lower values there is no guarantee next block will
+    // be mined within nMaxClockDrift limit.
+    if (IsProofOfStake() && GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
+    {
+        printf("CheckBlock() : coinbase timestamp is too early!!\n\n");
+//        return DoS(50, error("CheckBlock() : coinbase timestamp is too early nTimeBlock=%"PRI64d" nTimeTx=%u", GetBlockTime(), vtx[0].nTime));
+    }
 
     // Check coinstake timestamp
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(GetBlockTime(), (int64)vtx[1].nTime))
@@ -2614,9 +2621,9 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1423210893;
+        block.nTime    = 1424169662;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 7458590;
+        block.nNonce   = 7902923;
 
 	
         if (fTestNet)
@@ -2650,7 +2657,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.nNonce = %u \n\n", block.nNonce);
 
-	assert(block.hashMerkleRoot == uint256("405d8f3a3dc6eb8cb5ec82c8b78671809b5eb71d651d842c8f247c918b14685e"));
+	assert(block.hashMerkleRoot == uint256("cdc7bafb3eba39dabfbbdcf7bff6640d013d05213886a5beff45fa307380188c"));
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
