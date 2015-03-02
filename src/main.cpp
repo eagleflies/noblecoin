@@ -2087,15 +2087,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     if (IsProofOfStake() && (vtx[0].vout.size() != 1 || !vtx[0].vout[0].IsEmpty()))
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
 
-    printf("**CheckBlock() nTimeBlock=%"PRI64d" nTimeTx=%u\n", GetBlockTime(), vtx[0].nTime);
-    // Check coinbase timestamp. This is likely to fail for PoW since vtx[0].nTime is set to
-    // the moment when previous block was generated. Which was not an issue with nMaxClockDrift
-    // set to 120 minutes but with much lower values there is no guarantee next block will
-    // be mined within nMaxClockDrift limit.
+    // Check coinbase timestamp. Changing this to be checked only for PoS.
+    // This is likely to fail for PoW since vtx[0].nTime is set to the moment when
+    // previous block was generated. Which was not an issue with nMaxClockDrift set to
+    // 120 minutes but with nMaxClockDrift set to 1 minute it is likely next PoW
+    // block will fail this check.
     if (IsProofOfStake() && GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
     {
-        printf("CheckBlock() : coinbase timestamp is too early!!\n\n");
-//        return DoS(50, error("CheckBlock() : coinbase timestamp is too early nTimeBlock=%"PRI64d" nTimeTx=%u", GetBlockTime(), vtx[0].nTime));
+        return DoS(50, error("CheckBlock() : coinbase timestamp is too early nTimeBlock=%"PRI64d" nTimeTx=%u", GetBlockTime(), vtx[0].nTime));
     }
 
     // Check coinstake timestamp
