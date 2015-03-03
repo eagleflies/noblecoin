@@ -48,7 +48,7 @@ unsigned int nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
 static const int64 nTargetTimespan = 60 * 30;	// 30 min
 static const int64 nTargetSpacingWork = 4 * nStakeTargetSpacing; // 6 min PoW block spacing
 
-int64 nChainStartTime = 1424169662;
+int64 nChainStartTime = 1425297554;
 int nCoinbaseMaturity = 50;			// 50 blocks
 CBlockIndex* pindexGenesisBlock = NULL;
 //int64 nLastPrevMoneySupply;
@@ -2620,9 +2620,9 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1424169662;
+        block.nTime    = 1425297554;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 7902923;
+        block.nNonce   = 8938775;
 
 	
         if (fTestNet)
@@ -2656,7 +2656,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.nNonce = %u \n\n", block.nNonce);
 
-	assert(block.hashMerkleRoot == uint256("cdc7bafb3eba39dabfbbdcf7bff6640d013d05213886a5beff45fa307380188c"));
+	assert(block.hashMerkleRoot == uint256("191f41b63208b92fa0e561ab43a74fe771c2c101b8c2d6f8030b0ca5e8b7e874"));
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
