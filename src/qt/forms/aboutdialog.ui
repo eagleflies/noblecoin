@@ -13,6 +13,36 @@
   <property name="windowTitle">
    <string>About Noblecoin</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background-color: #222;
+}
+
+QLabel {
+    color: white;
+}
+
+QPushButton, QToolButton {
+    border: 4px solid #111;
+    border-radius: 12px;
+    background-color: #111;
+    color: white;
+    padding: 6px;
+    margin: 6px;
+}
+QPushButton:pressed, QToolButton:checked {
+    color: #cca000;
+}
+QPushButton:pressed, QToolButton:pressed {
+    border-color: #cca000;
+    color: #cca000;
+}
+QPushButton:disabled, QToolButton:disabled {
+    color: #444;
+    background-color: #222;
+}</string>
+  </property>
+
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
     <widget class="QLabel" name="label_4">

@@ -1,0 +1,176 @@
+QDialog, QMainWindow, QFrame {
+	color: white;
+	background-color: #222;
+	border: none;
+}
+
+QLabel {
+	background-color: transparent;
+}
+
+QCheckBox {
+    color: white;
+}
+
+QFrame#central { background-color: #222; border: none }
+QFrame#frame, QFrame#frame_2, QFrame#frame_3 {
+	background-color: #111;
+	border-style: plain;
+	border-width: 20px;
+	border-radius: 20px;
+	border-color: #111;
+	min-width: 10em;
+	padding: 6px;
+}
+QLabel[openExternalLinks=true], QHeaderView { color: #cca000 }
+QLabel[openExternalLinks=false] { color: white; font-weight: normal }
+QPushButton, QToolButton {
+	border: 2px solid #111;
+	border-radius: 12px;
+	background-color: #111;
+	color: white;
+	padding: 2px;
+	margin: 2px;
+}
+QPushButton:pressed, QToolButton:checked {
+	color: #cca000;
+}
+QPushButton:pressed, QToolButton:pressed {
+	border-color: #cca000;
+	color: #cca000;
+}
+QPushButton:disabled, QToolButton:disabled {
+	color: #444;
+	background-color: #222;
+}
+
+
+#scrollAreaWidgetContents QToolButton {
+	border-radius: 8px;
+	border-width: 0px;
+}
+
+/* the background-color is overridden to transparent for mac os x 
+   due to the entire toolbar area not being drawable in a regular
+   QMainWindow
+*/
+QToolBar { background: #222; border: 0px solid black; padding: 3px; }
+
+QToolBar::handle { image: url(handle.png); }
+QStatusBar { background: #222; }
+QMenuBar { background: #222; }
+QMenuBar::item { background: #222; color: white; }
+
+#scrollAreaWidgetContents { background: #222 }
+#scrollAreaWidgetContents > QFrame { background-color: #222; border-width: 0px; border-style: none; }
+
+QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}
+
+QTableView {
+	background: #111;
+	color: white;
+	border-style: none;
+	selection-background-color: #cca000;
+    alternate-background-color: #222;
+	selection-color: #111;
+	border: 0px solid black;
+}
+
+QHeaderView { color: #cca000; background-color: #111; background-image: none; }
+QHeaderView::section { color: #cca000; background-color: #222; }
+QHeaderView::section:checked { background-color: #111; }
+
+QTabWidget {
+	background: #111;
+}
+
+ QTabWidget::pane {
+     border-top: 2px solid #111;
+     border: 4px solid #111;
+     border-bottom-left-radius: 8px;
+     border-bottom-right-radius: 8px;
+     border-top-right-radius: 8px;
+	background: #111;
+ }
+
+ QTabWidget::tab-bar {
+     left: 5px; /* move to the right by 5px */
+ }
+
+ /* Style the tab using the tab sub-control. Note that
+     it reads QTabBar _not_ QTabWidget */
+ QTabBar::tab {
+     background: #111;
+     border: 4px solid #222;
+     border-bottom-color: #111; /* same as the pane color */
+     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;
+     min-width: 8ex;
+     padding: 4px;
+     color: #888;
+ }
+
+ QTabBar::tab:selected, QTabBar::tab:hover {
+     color: #cca000
+ }
+
+ QTabBar::tab:selected {
+     border-color: #111; /* same as pane color */
+     border-top-color: #cca000;
+ }
+
+ QTabBar::tab:!selected {
+     margin-top: 2px; /* make non-selected tabs look smaller */
+ }
+
+ /* make use of negative margins for overlapping tabs */
+ QTabBar::tab:selected {
+     /* expand/overlap to the left and right by 4px */
+     margin-left: -4px;
+     margin-right: -4px;
+ }
+
+ QTabBar::tab:first:selected {
+     margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
+ }
+
+ QTabBar::tab:last:selected {
+     margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+ }
+
+ QTabBar::tab:only-one {
+     margin: 0; /* if there is only one tab, we don't want overlapping margins */
+ }
+
+QFrame#userView
+{
+    font-family: Arial, Helvetica, sans-serif;
+    color: #ffffff;
+    font-weight: normal;
+    border-color: white;
+    border-width: 10px;
+    border-radius: 2px;
+}

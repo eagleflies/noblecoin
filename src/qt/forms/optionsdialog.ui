@@ -13,19 +13,364 @@
   <property name="windowTitle">
    <string>Options</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog, QFrame {
+	color: white;
+	background-color: #222;
+	border: none;
+}
+
+QLabel {
+	background-color: transparent;
+}
+
+QCheckBox {
+    color: white;
+}
+
+QFrame#central { background-color: #222; border: none }
+QFrame#frame, QFrame#frame_2, QFrame#frame_3 {
+	background-color: #111;
+	border-style: plain;
+	border-width: 20px;
+	border-radius: 20px;
+	border-color: #111;
+	min-width: 10em;
+	padding: 6px;
+}
+QLabel[openExternalLinks=true], QHeaderView { color: #ecb412; }
+QLabel[openExternalLinks=false] { color: white; font-weight:normal; }
+QPushButton, QToolButton {
+	border: 4px solid #111;
+	border-radius: 12px;
+	background-color: #111;
+	color: white;
+	padding: 6px;
+	margin: 6px;
+}
+QPushButton:pressed, QToolButton:checked {
+	color: #ecb412;
+}
+QPushButton:pressed, QToolButton:pressed {
+	border-color: #ecb412;
+	color: #ecb412;
+}
+QPushButton:disabled, QToolButton:disabled {
+	color: #444;
+	background-color: #222;
+}
+
+
+#scrollAreaWidgetContents QToolButton {
+	border-radius: 8px;
+	border-width: 0px;
+}
+
+/* the background-color is overridden to transparent for mac os x 
+   due to the entire toolbar area not being drawable in a regular
+   QMainWindow
+*/
+QToolBar { background: #222; border: 0px solid black; padding: 3px; }
+
+QToolBar::handle { image: url(handle.png); }
+QStatusBar { background: #222; }
+QMenuBar { background: #222; }
+QMenuBar::item { background: #222; color: white; }
+
+#scrollAreaWidgetContents { background: #222 }
+#scrollAreaWidgetContents &gt; QFrame { background-color: #222; border-width: 0px; border-style: none; }
+
+QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}
+
+QTableView {
+	background: #111;
+	color: white;
+	border-style: none;
+	selection-background-color: #ecb412;
+    alternate-background-color: #222;
+	selection-color: #111;
+	border: 0px solid black;
+}
+
+QHeaderView { color: #ecb412; background-color: #111; background-image: none; }
+QHeaderView::section { color: #ecb412; background-color: #222; }
+QHeaderView::section:checked { background-color: #111; }
+
+QTabWidget {
+	background: #111;
+}
+
+ QTabWidget::pane {
+     border-top: 2px solid #111;
+     border: 4px solid #111;
+     border-bottom-left-radius: 8px;
+     border-bottom-right-radius: 8px;
+     border-top-right-radius: 8px;
+	background: #111;
+ }
+
+ QTabWidget::tab-bar {
+     left: 5px; /* move to the right by 5px */
+ }
+
+ /* Style the tab using the tab sub-control. Note that
+     it reads QTabBar _not_ QTabWidget */
+ QTabBar::tab {
+     background: #111;
+     border: 4px solid #222;
+     border-bottom-color: #111; /* same as the pane color */
+     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;
+     min-width: 8ex;
+     padding: 4px;
+     color: #888;
+ }
+
+ QTabBar::tab:selected, QTabBar::tab:hover {
+     color: #ecb412
+ }
+
+ QTabBar::tab:selected {
+     border-color: #111; /* same as pane color */
+     border-top-color: #ecb412;
+ }
+
+ QTabBar::tab:!selected {
+     margin-top: 2px; /* make non-selected tabs look smaller */
+ }
+
+ /* make use of negative margins for overlapping tabs */
+ QTabBar::tab:selected {
+     /* expand/overlap to the left and right by 4px */
+     margin-left: -4px;
+     margin-right: -4px;
+ }
+
+ QTabBar::tab:first:selected {
+     margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
+ }
+
+ QTabBar::tab:last:selected {
+     margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+ }
+
+ QTabBar::tab:only-one {
+     margin: 0; /* if there is only one tab, we don't want overlapping margins */
+ }
+
+
+</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #222;
+
+QLabel {
+	background-color: transparent;
+}
+
+QCheckBox {
+    color: white;
+}
+
+QFrame#central { background-color: #222; border: none }
+QFrame#frame, QFrame#frame_2, QFrame#frame_3 {
+	background-color: #111;
+	border-style: plain;
+	border-width: 20px;
+	border-radius: 20px;
+	border-color: #111;
+	min-width: 10em;
+	padding: 6px;
+}
+QLabel[openExternalLinks=true], QHeaderView { color: #ecb412 }
+QLabel[openExternalLinks=false] { color: white; font-weight: normal }
+QPushButton, QToolButton {
+	border: 4px solid #111;
+	border-radius: 12px;
+	background-color: #111;
+	color: white;
+	padding: 6px;
+	margin: 6px;
+}
+QPushButton:pressed, QToolButton:checked {
+	color: #ecb412;
+}
+QPushButton:pressed, QToolButton:pressed {
+	border-color: #ecb412;
+	color: #ecb412;
+}
+QPushButton:disabled, QToolButton:disabled {
+	color: #444;
+	background-color: #222;
+}
+
+
+#scrollAreaWidgetContents QToolButton {
+	border-radius: 8px;
+	border-width: 0px;
+}
+
+/* the background-color is overridden to transparent for mac os x 
+   due to the entire toolbar area not being drawable in a regular
+   QMainWindow
+*/
+QToolBar { background: #222; border: 0px solid black; padding: 3px; }
+
+QToolBar::handle { image: url(handle.png); }
+QStatusBar { background: #222; }
+QMenuBar { background: #222; }
+QMenuBar::item { background: #222; color: white; }
+
+#scrollAreaWidgetContents { background: #222 }
+#scrollAreaWidgetContents &gt; QFrame { background-color: #222; border-width: 0px; border-style: none; }
+
+QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}
+
+QTableView {
+	background: #111;
+	color: white;
+	border-style: none;
+	selection-background-color: #ecb412;
+    alternate-background-color: #222;
+	selection-color: #111;
+	border: 0px solid black;
+}
+
+QHeaderView { color: #ecb412; background-color: #111; background-image: none; }
+QHeaderView::section { color: #ecb412; background-color: #222; }
+QHeaderView::section:checked { background-color: #111; }
+
+QTabWidget {
+	background: #111;
+}
+
+ QTabWidget::pane {
+     border-top: 2px solid #111;
+     border: 4px solid #111;
+     border-bottom-left-radius: 8px;
+     border-bottom-right-radius: 8px;
+     border-top-right-radius: 8px;
+	background: #111;
+ }
+
+ QTabWidget::tab-bar {
+     left: 5px; /* move to the right by 5px */
+ }
+
+ /* Style the tab using the tab sub-control. Note that
+     it reads QTabBar _not_ QTabWidget */
+ QTabBar::tab {
+     background: #111;
+     border: 4px solid #222;
+     border-bottom-color: #111; /* same as the pane color */
+     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;
+     min-width: 8ex;
+     padding: 4px;
+     color: #888;
+ }
+
+ QTabBar::tab:selected, QTabBar::tab:hover {
+     color: #ecb412
+ }
+
+ QTabBar::tab:selected {
+     border-color: #111; /* same as pane color */
+     border-top-color: #ecb412;
+ }
+
+ QTabBar::tab:!selected {
+     margin-top: 2px; /* make non-selected tabs look smaller */
+ }
+
+ /* make use of negative margins for overlapping tabs */
+ QTabBar::tab:selected {
+     /* expand/overlap to the left and right by 4px */
+     margin-left: -4px;
+     margin-right: -4px;
+ }
+
+ QTabBar::tab:first:selected {
+     margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
+ }
+
+ QTabBar::tab:last:selected {
+     margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+ }
+
+ QTabBar::tab:only-one {
+     margin: 0; /* if there is only one tab, we don't want overlapping margins */
+ }</string>
+     </property>
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabMain">
+      <property name="styleSheet">
+       <string notr="true">QToolTip {
+	color: white;
+	background-color: #222;
+}
+</string>
+      </property>
       <attribute name="title">
        <string>&amp;Main</string>
       </attribute>
@@ -44,7 +389,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_Main">
+        <layout class="QHBoxLayout" name="horizontalLayoutFee">
          <item>
           <widget class="QLabel" name="transactionFeeLabel">
            <property name="text">
@@ -59,10 +404,18 @@
           </widget>
          </item>
          <item>
-          <widget class="BitcoinAmountField" name="transactionFee"/>
+          <widget class="BitcoinAmountField" name="transactionFee">
+           <property name="styleSheet">
+            <string notr="true">	border-radius: 6px;
+	border-width: 0;
+	padding: 8px;
+	background-color: #111;
+	color: white;</string>
+           </property>
+          </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_Main">
+          <spacer name="horizontalSpacerFee">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -79,10 +432,10 @@
        <item>
         <widget class="QCheckBox" name="bitcoinAtStartup">
          <property name="toolTip">
-          <string>Automatically start Noblecoin after logging in to the system.</string>
+          <string>Automatically start NobleCoin after logging in to the system.</string>
          </property>
          <property name="text">
-          <string>&amp;Start Noblecoin on system login</string>
+          <string>&amp;Start NobleCoin on system login</string>
          </property>
         </widget>
        </item>
@@ -119,7 +472,7 @@
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
          <property name="toolTip">
-          <string>Automatically open the Noblecoin client port on the router. This only works when your router supports UPnP and it is enabled.</string>
+          <string>Automatically open the NobleCoin client port on the router. This only works when your router supports UPnP and it is enabled.</string>
          </property>
          <property name="text">
           <string>Map port using &amp;UPnP</string>
@@ -129,7 +482,7 @@
        <item>
         <widget class="QCheckBox" name="connectSocks">
          <property name="toolTip">
-          <string>Connect to the Noblecoin network through a SOCKS proxy (e.g. when connecting through Tor).</string>
+          <string>Connect to the NobleCoin network through a SOCKS proxy (e.g. when connecting through Tor).</string>
          </property>
          <property name="text">
           <string>&amp;Connect through SOCKS proxy:</string>
@@ -162,6 +515,12 @@
            <property name="toolTip">
             <string>IP address of the proxy (e.g. 127.0.0.1)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {
+	background-color: #111;
+	color: white;
+}</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -188,6 +547,13 @@
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {
+	background-color: #111;
+	color: white;
+	width: 32px;
+}</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -207,6 +573,32 @@
           <widget class="QValueComboBox" name="socksVersion">
            <property name="toolTip">
             <string>SOCKS version of the proxy (e.g. 5)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}</string>
            </property>
           </widget>
          </item>
@@ -303,7 +695,33 @@
          <item>
           <widget class="QValueComboBox" name="lang">
            <property name="toolTip">
-            <string>The user interface language can be set here. This setting will take effect after restarting Noblecoin.</string>
+            <string>The user interface language can be set here. This setting will take effect after restarting NobleCoin.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}</string>
            </property>
           </widget>
          </item>
@@ -329,6 +747,32 @@
            <property name="toolTip">
             <string>Choose the default subdivision unit to show in the interface and when sending coins.</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {
+	border-radius: 6px;
+	border-width: 2px;
+	border-color: #222;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox {
+	border-radius: 6px;
+	border-width: 0;
+	border-style: none;
+	padding: 8px;
+	background-color: #111;
+	color: white;
+}
+
+QComboBox::drop-down {
+	border-width: 0;
+	border-style: none;
+	background-color: #111;
+	color: white;
+}</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -336,7 +780,7 @@
        <item>
         <widget class="QCheckBox" name="displayAddresses">
          <property name="toolTip">
-          <string>Whether to show Noblecoin addresses in the transaction list or not.</string>
+          <string>Whether to show NobleCoin addresses in the transaction list or not.</string>
          </property>
          <property name="text">
           <string>&amp;Display addresses in transaction list</string>
@@ -389,8 +833,8 @@
       <widget class="QLabel" name="statusLabel">
        <property name="font">
         <font>
-         <weight>75</weight>
-         <bold>true</bold>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
        <property name="text">
@@ -453,16 +897,17 @@
    <class>BitcoinAmountField</class>
    <extends>QSpinBox</extends>
    <header>bitcoinamountfield.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QValueComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qvaluecombobox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>QValidatedLineEdit</class>
    <extends>QLineEdit</extends>
    <header>qvalidatedlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QValueComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qvaluecombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
