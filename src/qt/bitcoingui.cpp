@@ -109,11 +109,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     p.setColor(QPalette::Base, QColor(0x22, 0x22, 0x22));
     p.setColor(QPalette::AlternateBase, QColor(0x22, 0x22, 0x22));
     setPalette(p);
-#ifdef WIN32
-    QFile style("../src/qt/res/text/style.qss");
-#elif defined(LINUX)
-    QFile style("src/qt/res/text/style.qss");
-#endif
+    QFile style(":/text/style");
     style.open(QFile::ReadOnly);
     setStyleSheet(QString::fromUtf8(style.readAll()));
 
